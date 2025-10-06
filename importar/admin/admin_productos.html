@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos - Panel de Administración</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="css/admindash.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- JavaScript de Parsley -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/parsley.js/2.9.2/parsley.min.js"></script>
+</head>
+
+<body>
+    <ul id="slide-out" class="sidenav sidenav-fixed">
+        <li>
+            <div class="user-view">
+                <a href="#!"><img class="circle" src="images/anonymous-user.webp"></a>
+                <a href="#!"><span class="black-text name">Admin</span></a>
+                <a href="#!"><span class="black-text email">hola@frutasyverduras.com</span></a>
+            </div>
+        </li>
+        <li><a class="subheader">Gestión Operativa</a></li>
+        <li><a href="admin.html"><i class="material-icons">dashboard</i>Dashboard</a></li>
+        <li class="active"><a href="admin_productos.html"><i class="material-icons">local_grocery_store</i>Productos</a>
+        </li>
+        <li><a href="admin_pedidos.html"><i class="material-icons">receipt</i>Pedidos</a></li>
+        <li><a href="admin_clientes.html"><i class="material-icons">people</i>Clientes</a></li>
+        <li><a href="#!"><i class="material-icons">settings</i>Configuración</a></li>
+        <li>
+            <div class="divider"></div>
+        </li>
+        <li><a class="subheader">Gestión de Contenido</a></li>
+        <li><a class="waves-effect" href="admin_blog.html">Blog</a></li>
+        <li><a class="waves-effect" href="#!">Páginas</a></li>
+        <li><a class="waves-effect" href="#!">Comentarios</a></li>
+    </ul>
+
+    <main class="main-content">
+        <div class="container">
+            <h3>Gestión de Productos</h3>
+
+            <!-- Filtro por categoría -->
+            <div class="row">
+                <div class="input-field col s12 m6 l4">
+                    <select id="filtro-categoria">
+                        <option value="todas" selected>Todas las categorías</option>
+                        <option value="Frutas frescas">Frutas frescas</option>
+                        <option value="Verduras orgánicas">Verduras orgánicas</option>
+                        <option value="Productos orgánicos">Productos orgánicos</option>
+                        <option value="Productos lácteos">Productos lácteos</option>
+                    </select>
+                    <label>Filtrar por Categoría</label>
+                </div>
+            </div>
+
+            <!-- Tabla de productos -->
+            <div class="row">
+                <div class="col s12">
+                    <div class="card">
+                        <div class="card-content">
+                            <span class="card-title">Lista de Productos</span>
+                            <table class="responsive-table striped" id="tabla-productos">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Categoría</th>
+                                        <th>Precio</th>
+                                        <th>Stock</th>
+                                        <th>Descripción</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Productos se llenan por JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario para crear producto -->
+            <div class="row">
+                <div class="col s12 m8 l6">
+                    <div class="card">
+                        <div class="card-content">
+                            <span class="card-title" id="titulo-creacion">Agregar Nuevo Producto</span>
+                            <form id="form-producto" data-parsley-validate>
+                                <div class="input-field">
+                                    <input id="nombre" type="text" data-parsley-required="true"
+                                        data-parsley-required-message="Se debe ingresar un nombre"
+                                        data-parsley-maxlength="100"
+                                        data-parsley-maxlength-message="El nombre del producto no puede tener más de 100 carácteres.">
+                                    <label for="nombre">Nombre del Producto</label>
+                                </div>
+                                <div class="input-field">
+                                    <select id="categoria" required required data-parsley-required="true"
+                                        data-parsley-required-message="Se debe seleccionar una categoría.">
+                                        <option value="" disabled selected>Elige una categoría</option>
+                                        <option value="Frutas frescas">Frutas frescas</option>
+                                        <option value="Verduras orgánicas">Verduras orgánicas</option>
+                                        <option value="Productos orgánicos">Productos orgánicos</option>
+                                        <option value="Productos lácteos">Productos lácteos</option>
+                                    </select>
+                                    <label for="categoria">Categoría</label>
+                                </div>
+                                <div class="input-field">
+                                    <input id="precio" type="number" min="0" step="0.01" required
+                                        data-parsley-required="true"
+                                        data-parsley-required-message="Se debe ingresar un precio." data-parsley-min="0"
+                                        data-parsley-min-message="El precio no puede ser menor a 0.">
+                                    <label for="precio">Precio</label>
+                                </div>
+                                <div class="input-field">
+                                    <input id="stock" type="text" required data-parsley-required="true"
+                                        data-parsley-required-message="Se debe ingresar un stock inicial."
+                                        data-parsley-min="0" data-parsley-min-message="El stock no puede ser menor a 0."
+                                        data-parsley-type="integer"
+                                        data-parsley-type-message="El stock debe ser un número entero.">
+                                    <label for="stock">Stock inicial</label>
+                                </div>
+                                <div class="input-field">
+                                    <input id="stockCritico" type="text"
+                                        data-parsley-min="0" data-parsley-min-message="El stock no puede ser menor a 0."
+                                        data-parsley-type="integer"
+                                        data-parsley-type-message="El stock debe ser un número entero.">
+                                    <label for="stock">Stock critico</label>
+                                </div>
+                                <div class="input-field">
+                                    <textarea id="descripcion" class="materialize-textarea" data-parsley-required="true"
+                                        data-parsley-required-message="Se debe ingresar una descripción."
+                                        data-parsley-maxlength="500"
+                                        data-parsley-maxlength-message="El nombre del producto no puede tener más de 500 carácteres."></textarea>
+                                    <label for="descripcion">Descripción</label>
+                                </div>
+                                <button class="btn waves-effect waves-light orange" type="submit" id="boton-creacion">
+                                    Crear Producto
+                                    <i class="material-icons right">add</i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="js/admin_productos.js"></script>
+
+</body>
+
+</html>

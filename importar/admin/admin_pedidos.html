@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos - Panel de Administración</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="css/admindash.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <ul id="slide-out" class="sidenav sidenav-fixed">
+        <li>
+            <div class="user-view">
+                <a href="#!"><img class="circle" src="images/anonymous-user.webp"></a>
+                <a href="#!"><span class="black-text name">Admin</span></a>
+                <a href="#!"><span class="black-text email">hola@frutasyverduras.com</span></a>
+            </div>
+        </li>
+        <li><a class="subheader">Gestión Operativa</a></li>
+        <li><a href="admin.html"><i class="material-icons">dashboard</i>Dashboard</a></li>
+        <li><a href="admin_productos.html"><i class="material-icons">local_grocery_store</i>Productos</a></li>
+        <li class="active"><a href="admin_pedidos.html"><i class="material-icons">receipt</i>Pedidos</a></li>
+        <li><a href="admin_clientes.html"><i class="material-icons">people</i>Clientes</a></li>
+        <li><a href="#!"><i class="material-icons">settings</i>Configuración</a></li>
+        <li><div class="divider"></div></li>
+        <li><a class="subheader">Gestión de Contenido</a></li>
+        <li><a class="waves-effect" href="admin_blog.html">Blog</a></li>
+        <li><a class="waves-effect" href="#!">Páginas</a></li>
+        <li><a class="waves-effect" href="#!">Comentarios</a></li>
+    </ul>
+
+    <main class="main-content">
+        <div class="container">
+            <h3>Gestión de Pedidos</h3>
+
+            <!-- Filtros -->
+            <div class="row">
+                <div class="input-field col s12 m4 l3">
+                    <select id="filtro-estado">
+                        <option value="todas" selected>Todos los estados</option>
+                        <option value="Completado">Completado</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                    <label>Filtrar por Estado</label>
+                </div>
+                <div class="input-field col s12 m4 l3">
+                    <input id="filtro-fecha" type="date">
+                    <label for="filtro-fecha" class="active">Filtrar por Fecha</label>
+                </div>
+                <div class="input-field col s12 m4 l3">
+                    <input id="filtro-total" type="number">
+                    <label for="filtro-total" class="active">Filtrar por Total</label>
+                </div>
+            </div>
+
+            <!-- Tabla de pedidos -->
+            <div class="row">
+                <div class="col s12">
+                    <div class="card">
+                        <div class="card-content">
+                            <span class="card-title">Lista de Pedidos</span>
+                            <table class="responsive-table striped" id="tabla-pedidos">
+                                <thead>
+                                    <tr>
+                                        <th>ID Pedido</th>
+                                        <th>Fecha</th>
+                                        <th>Cliente</th>
+                                        <th>Total</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Pedidos se llenan por JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="js/admin_pedidos.js"></script>
+</body>
+</html>

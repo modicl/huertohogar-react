@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Panel de Administración</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="css/admindash.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+</head>
+
+<body>
+    <ul id="slide-out" class="sidenav sidenav-fixed">
+        <li>
+            <div class="user-view">
+                <a href="#!"><img class="circle" src="images/anonymous-user.webp"></a>
+                <a href="#!"><span class="black-text name">Admin</span></a>
+                <a href="#!"><span class="black-text email">hola@frutasyverduras.com</span></a>
+            </div>
+        </li>
+        <li><a class="subheader">Gestión Operativa</a></li>
+        <li><a href="admin.html"><i class="material-icons">dashboard</i>Dashboard</a></li>
+        <li><a href="admin_productos.html"><i class="material-icons">local_grocery_store</i>Productos</a></li>
+        <li><a href="admin_pedidos.html"><i class="material-icons">receipt</i>Pedidos</a></li>
+        <li><a href="admin_clientes.html"><i class="material-icons">people</i>Clientes</a></li>
+        <li><a href="#!"><i class="material-icons">settings</i>Configuración</a></li>
+        <li>
+            <div class="divider"></div>
+        </li>
+        <li><a class="subheader">Gestión de Contenido</a></li>
+        <li><a class="waves-effect" href="admin_blog.html">Blog</a></li>
+        <li><a class="waves-effect" href="#!">Páginas</a></li>
+        <li><a class="waves-effect" href="#!">Comentarios</a></li>
+    </ul>
+
+    <main class="main-content">
+        <div class="container">
+            <h3>Gestión del Blog</h3>
+            <div class="row">
+                <div class="col s12 m10 l8">
+                    <div class="card">
+                        <div class="card-content">
+                            <span class="card-title">Nueva Entrada de Blog</span>
+                            <form id="form-blog">
+                                <div class="input-field">
+                                    <input id="titulo" type="text" required>
+                                    <label for="titulo">Título del blog</label>
+                                </div>
+                                <div class="input-field">
+                                    <div id="editor-container"></div>
+                                    <input type="hidden" id="cuerpo" required>
+                                    <button class="btn waves-effect waves-light orange" type="submit">
+                                        Publicar blog
+                                        <i class="material-icons right">send</i>
+                                    </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12 m10 l8">
+                    <div class="card">
+                        <div class="card-content">
+                            <span class="card-title">Blogs Publicadas</span>
+                            <ul id="lista-blog" class="collection">
+                                <!-- Noticias se agregan aquí -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="js/admin_blog.js"></script>
+</body>
+
+</html>

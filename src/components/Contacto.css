@@ -1,0 +1,76 @@
+.contact-container {
+    padding: 2rem;
+    margin: 2rem auto;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.contact-title {
+    color: #2E8B57;
+    font-family: 'Playfair Display', serif;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.contact-subtitle {
+    color: #666;
+    font-family: 'Montserrat', sans-serif;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.btn-large {
+    width: 100%;
+    margin-top: 1.5rem;
+    background-color: #2E8B57;
+    border-radius: 30px;
+    font-weight: bold;
+}
+
+.btn-large:hover {
+    background-color: #3CB371;
+}
+
+.input-field label {
+    color: #666;
+}
+
+.input-field input[type=text]:focus+label,
+.input-field input[type=email]:focus+label,
+.input-field textarea:focus+label {
+    color: #2E8B57 !important;
+}
+
+.input-field input[type=text]:focus,
+.input-field input[type=email]:focus,
+.input-field textarea:focus {
+    border-bottom: 1px solid #2E8B57 !important;
+    box-shadow: 0 1px 0 0 #2E8B57 !important;
+}
+
+.contact-info {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.contact-info h5 {
+    color: #2E8B57;
+    font-family: 'Playfair Display', serif;
+}
+
+.contact-info p {
+    color: #666;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.contact-icon {
+    color: #2E8B57;
+    margin-right: 10px;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+}

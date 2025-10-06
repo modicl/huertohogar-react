@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - Panel de Administración</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="css/admindash.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- JavaScript de Parsley -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- Necesita cargar JQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/parsley.js/2.9.2/parsley.min.js"></script>
+</head>
+
+<body>
+    <ul id="slide-out" class="sidenav sidenav-fixed">
+        <li>
+            <div class="user-view">
+                <a href="#!"><img class="circle" src="images/anonymous-user.webp"></a>
+                <a href="#!"><span class="black-text name">Admin</span></a>
+                <a href="#!"><span class="black-text email">hola@frutasyverduras.com</span></a>
+            </div>
+        </li>
+        <li><a class="subheader">Gestión Operativa</a></li>
+        <li><a href="admin.html"><i class="material-icons">dashboard</i>Dashboard</a></li>
+        <li><a href="admin_productos.html"><i class="material-icons">local_grocery_store</i>Productos</a></li>
+        <li><a href="admin_pedidos.html"><i class="material-icons">receipt</i>Pedidos</a></li>
+        <li class="active"><a href="admin_clientes.html"><i class="material-icons">people</i>Clientes</a></li>
+        <li><a href="#!"><i class="material-icons">settings</i>Configuración</a></li>
+        <li>
+            <div class="divider"></div>
+        </li>
+        <li><a class="subheader">Gestión de Contenido</a></li>
+        <li><a class="waves-effect" href="admin_blog.html">Blog</a></li>
+        <li><a class="waves-effect" href="#!">Páginas</a></li>
+        <li><a class="waves-effect" href="#!">Comentarios</a></li>
+    </ul>
+
+    <main class="main-content">
+        <div class="container">
+            <h3>Gestión de Clientes</h3>
+
+            <!-- Filtros -->
+            <div class="row">
+                <div class="input-field col s12 m4 l3">
+                    <select id="filtro-pais">
+                        <option value="todos" selected>Todos los países</option>
+                        <option value="Chile">Chile</option>
+                        <option value="Argentina">Argentina</option>
+                        <option value="Perú">Perú</option>
+                    </select>
+                    <label>Filtrar por País</label>
+                </div>
+                <div class="input-field col s12 m4 l3">
+                    <select id="filtro-frecuente">
+                        <option value="todos" selected>Todos</option>
+                        <option value="si">Frecuente</option>
+                        <option value="no">No Frecuente</option>
+                    </select>
+                    <label>Filtrar por Frecuencia</label>
+                </div>
+                <div class="input-field col s12 m4 l3">
+                    <input id="filtro-nombre" type="text" placeholder="Buscar por nombre o apellido">
+                    <label for="filtro-nombre" class="active">Buscar Cliente</label>
+                </div>
+            </div>
+
+            <!-- Tabla de clientes -->
+            <div class="row">
+                <div class="col s12">
+                    <div class="card">
+                        <div class="card-content">
+                            <span class="card-title">Lista de Clientes</span>
+                            <table class="responsive-table striped" id="tabla-clientes">
+                                <thead>
+                                    <tr>
+                                        <th>ID Cliente</th>
+                                        <th>Nombre y Apellido</th>
+                                        <th>Órdenes</th>
+                                        <th>Frecuente</th>
+                                        <th>Editar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Clientes se llenan por JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario para crear cliente -->
+            <div class="row">
+                <div class="col s12 m8 l6">
+                    <div class="card">
+                        <div class="card-content">
+                            <span class="card-title" id="titulo-creacion">Agregar Nuevo Cliente</span>
+                            <form id="form-cliente" data-parsley-validate>
+                                <div class="input-field">
+                                    <input id="rut" type="text" maxlength="9" maxlength="9" required data-parsley-required="true"
+                                        data-parsley-required-message="Se debe de ingresar un RUT."
+                                        data-parsley-pattern="^[0-9]{7,8}[kK0-9]{1}$"
+                                        data-parsley-pattern-message="El RUT debe contener solo números y la letra K, sin puntos ni guion. Ejemplo: 12345678K o 123456789."
+                                        data-parsley-minlength="7"
+                                        data-parsley-minlength-message="El RUT debe tener al menos 7 carácteres."
+                                        data-parsley-trigger="keyup">
+                                    <label for="rut">RUT</label>
+                                </div>
+                                <div class="input-field">
+                                    <input id="nombre" type="text" data-parsley-required="true"
+                                        data-parsley-required-message="Debes ingresar tu nombre."
+                                        data-parsley-maxlength="50"
+                                        data-parsley-maxlength-message="El nombre no puede tener mas de 50 carácteres."
+                                        data-parsley-trigger="keyup">
+                                    <label for="nombre">Nombre</label>
+                                </div>
+                                <div class="input-field">
+                                    <input id="apellido_paterno" type="text" data-parsley-required="true"
+                                        data-parsley-required-message="Se necesita ingresar  un apellido."
+                                        data-parsley-minlenght="1"
+                                        data-parsley-minlength-message="Se debe de ingresar al menos un carácter."
+                                        data-parsley-maxlength="100"
+                                        data-parsley-maxlength-message="El apellido no puede tener mas de 100 carácteres."
+                                        data-parsley-trigger="keyup">
+                                    <label for="apellido_paterno">Apellido Paterno</label>
+                                </div>
+                                <div class="input-field">
+                                    <input id="apellido_materno" type="text" data-parsley-required="true"
+                                        data-parsley-required-message="Se necesita ingresar  un apellido."
+                                        data-parsley-minlenght="1"
+                                        data-parsley-minlength-message="Se debe de ingresar al menos un carácter."
+                                        data-parsley-maxlength="100"
+                                        data-parsley-maxlength-message="El apellido no puede tener mas de 100 carácteres."
+                                        data-parsley-trigger="keyup">
+                                    <label for="apellido_materno">Apellido Materno</label>
+                                </div>
+                                <div class="input-field">
+                                    <input id="correo" type="email" data-parsley-type="email"
+                                        data-parsley-pattern="[a-zA-Z0-9._%+-]+@(duoc\.cl|profesor\.duoc\.cl|gmail\.com)$"
+                                        data-parsley-pattern-message="Solo se permiten correos @duoc.cl, @profesor.duoc.cl o @gmail.com"
+                                        data-parsley-type-message="Debes ingresar un correo válido."
+                                        data-parsley-required="true"
+                                        data-parsley-required-message="Debes ingresar tu correo electrónico."
+                                        data-parsley-maxlength="100"
+                                        data-parsley-maxlength-message="El correo no puede tener más de 100 carácteres."
+                                        data-parsley-trigger="keyup">
+                                    <label for="correo">Correo electrónico</label>
+                                </div>
+                                <div class="input-field">
+                                    <input id="fecha_nacimiento" type="text" class="datepicker">
+                                    <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+                                </div>
+                                <div class="input-field">
+                                    <select id="region" data-parsley-required="true"
+                                        data-parsley-required-message="Debes seleccionar una región.">
+                                        <option value="" disabled selected>Selecciona una región</option>
+                                        <option value="Arica y Parinacota">Arica y Parinacota</option>
+                                        <option value="Tarapacá">Tarapacá</option>
+                                        <option value="Antofagasta">Antofagasta</option>
+                                        <option value="Atacama">Atacama</option>
+                                        <option value="Coquimbo">Coquimbo</option>
+                                        <option value="Valparaíso">Valparaíso</option>
+                                        <option value="Metropolitana">Metropolitana</option>
+                                        <option value="O'Higgins">O'Higgins</option>
+                                        <option value="Maule">Maule</option>
+                                        <option value="Ñuble">Ñuble</option>
+                                        <option value="Biobío">Biobío</option>
+                                        <option value="La Araucanía">La Araucanía</option>
+                                        <option value="Los Ríos">Los Ríos</option>
+                                        <option value="Los Lagos">Los Lagos</option>
+                                        <option value="Aysén">Aysén</option>
+                                        <option value="Magallanes">Magallanes</option>
+                                    </select>
+                                    <label for="region">Región</label>
+                                </div>
+                                <div class="input-field">
+                                    <select id="comuna" data-parsley-required="true"
+                                        data-parsley-required-message="Debes seleccionar una comuna.">
+                                        <option value="" disabled selected>Selecciona una comuna</option>
+                                        <!-- Se llenará dinámicamente dependiendo de la region!!!-->
+                                    </select>
+                                    <label for="comuna">Comuna</label>
+                                </div>
+                                <div class="input-field">
+                                    <input id="direccion" type="text" data-parsley-required="true"
+                                        data-parsley-required-message="Debe de ingresar una dirección."
+                                        data-parsley-minlength="10"
+                                        data-parsley-minlength-message="Debe de ingresar una dirección valida"
+                                        data-parsley-trigger="keyup">
+                                    <label for="direccion">Dirección</label>
+                                </div>
+                                <button class="btn waves-effect waves-light orange" type="submit">
+                                    Crear Cliente
+                                    <i class="material-icons right">add</i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="js/admin_clientes.js"></script>
+    <script>
+        // Script usado aca ya que no tenemos un backend que proporcione estos valores, tal ves existe una API?
+        const comunasPorRegion = {
+            "Arica y Parinacota": ["Arica", "Camarones", "Putre", "General Lagos"],
+            "Tarapacá": ["Iquique", "Alto Hospicio", "Pozo Almonte", "Camiña", "Colchane", "Huara", "Pica"],
+            "Antofagasta": ["Antofagasta", "Mejillones", "Sierra Gorda", "Taltal", "Calama", "Ollagüe", "San Pedro de Atacama", "Tocopilla", "María Elena"],
+            "Atacama": ["Copiapó", "Caldera", "Tierra Amarilla", "Chañaral", "Diego de Almagro", "Vallenar", "Alto del Carmen", "Freirina", "Huasco"],
+            "Coquimbo": ["La Serena", "Coquimbo", "Andacollo", "La Higuera", "Paiguano", "Vicuña", "Illapel", "Canela", "Los Vilos", "Salamanca", "Ovalle", "Combarbalá", "Monte Patria", "Punitaqui", "Río Hurtado"],
+            "Valparaíso": ["Valparaíso", "Casablanca", "Concón", "Juan Fernández", "Puchuncaví", "Quintero", "Viña del Mar", "Isla de Pascua", "Los Andes", "Calle Larga", "Rinconada", "San Esteban", "La Ligua", "Cabildo", "Papudo", "Petorca", "Zapallar", "Quillota", "Calera", "Hijuelas", "La Cruz", "Nogales", "San Antonio", "Algarrobo", "Cartagena", "El Quisco", "El Tabo", "San Antonio", "Santo Domingo", "San Felipe", "Catemu", "Llaillay", "Panquehue", "Putaendo", "Santa María"],
+            "Metropolitana": ["Cerrillos", "Cerro Navia", "Conchalí", "El Bosque", "Estación Central", "Huechuraba", "Independencia", "La Cisterna", "La Florida", "La Granja", "La Pintana", "La Reina", "Las Condes", "Lo Barnechea", "Lo Espejo", "Lo Prado", "Macul", "Maipú", "Ñuñoa", "Pedro Aguirre Cerda", "Peñalolén", "Providencia", "Pudahuel", "Quilicura", "Quinta Normal", "Recoleta", "Renca", "San Joaquín", "San Miguel", "San Ramón", "Vitacura", "Puente Alto", "Pirque", "San José de Maipo", "Colina", "Lampa", "Tiltil", "San Bernardo", "Buin", "Calera de Tango", "Paine", "Melipilla", "Alhué", "Curacaví", "María Pinto", "San Pedro", "Talagante", "El Monte", "Isla de Maipo", "Padre Hurtado", "Peñaflor"],
+            "O'Higgins": ["Rancagua", "Codegua", "Coinco", "Coltauco", "Doñihue", "Graneros", "Las Cabras", "Machalí", "Malloa", "Mostazal", "Olivar", "Peumo", "Pichidegua", "Quinta de Tilcoco", "Rengo", "Requínoa", "San Vicente", "Pichilemu", "La Estrella", "Litueche", "Marchihue", "Navidad", "Paredones", "San Fernando", "Chépica", "Chimbarongo", "Lolol", "Nancagua", "Palmilla", "Peralillo", "Placilla", "Pumanque", "Santa Cruz"],
+            "Maule": ["Talca", "Constitución", "Curepto", "Empedrado", "Maule", "Pelarco", "Pencahue", "Río Claro", "San Clemente", "San Rafael", "Cauquenes", "Chanco", "Pelluhue", "Curicó", "Hualañé", "Licantén", "Molina", "Rauco", "Romeral", "Sagrada Familia", "Teno", "Vichuquén", "Linares", "Colbún", "Longaví", "Parral", "Retiro", "San Javier", "Villa Alegre", "Yerbas Buenas"],
+            "Ñuble": ["Chillán", "Bulnes", "Cobquecura", "Coelemu", "Coihueco", "El Carmen", "Ninhue", "Ñiquén", "Pemuco", "Pinto", "Portezuelo", "Quillón", "Quirihue", "Ránquil", "San Carlos", "San Fabián", "San Ignacio", "San Nicolás", "Treguaco", "Yungay"],
+            "Biobío": ["Concepción", "Coronel", "Chiguayante", "Florida", "Hualqui", "Lota", "Penco", "San Pedro de la Paz", "Santa Juana", "Talcahuano", "Tomé", "Hualpén", "Lebu", "Arauco", "Cañete", "Contulmo", "Curanilahue", "Los Álamos", "Tirúa", "Los Ángeles", "Antuco", "Cabrero", "Laja", "Mulchén", "Nacimiento", "Negrete", "Quilaco", "Quilleco", "San Rosendo", "Santa Bárbara", "Tucapel", "Yumbel", "Alto Biobío"],
+            "La Araucanía": ["Temuco", "Carahue", "Cunco", "Curarrehue", "Freire", "Galvarino", "Gorbea", "Lautaro", "Loncoche", "Melipeuco", "Nueva Imperial", "Padre Las Casas", "Perquenco", "Pitrufquén", "Pucón", "Saavedra", "Teodoro Schmidt", "Toltén", "Vilcún", "Villarrica", "Cholchol", "Angol", "Collipulli", "Curacautín", "Ercilla", "Lonquimay", "Los Sauces", "Lumaco", "Purén", "Renaico", "Traiguén", "Victoria"],
+            "Los Ríos": ["Valdivia", "Corral", "Lanco", "Los Lagos", "Máfil", "Mariquina", "Paillaco", "Panguipulli", "La Unión", "Futrono", "Lago Ranco", "Río Bueno"],
+            "Los Lagos": ["Puerto Montt", "Calbuco", "Cochamó", "Fresia", "Frutillar", "Los Muermos", "Llanquihue", "Maullín", "Puerto Varas", "Castro", "Ancud", "Chonchi", "Curaco de Vélez", "Dalcahue", "Puqueldón", "Queilén", "Quellón", "Quemchi", "Quinchao", "Osorno", "Puerto Octay", "Purranque", "Puyehue", "Río Negro", "San Juan de la Costa", "San Pablo"],
+            "Aysén": ["Coyhaique", "Lago Verde", "Aysén", "Cisnes", "Guaitecas", "Cochrane", "O'Higgins", "Tortel", "Chile Chico", "Río Ibáñez"],
+            "Magallanes": ["Punta Arenas", "Laguna Blanca", "Río Verde", "San Gregorio", "Cabo de Hornos", "Antártica", "Porvenir", "Primavera", "Timaukel", "Natales", "Torres del Paine"]
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializa selects de Materialize
+            var elems = document.querySelectorAll('select');
+            M.FormSelect.init(elems);
+
+            // Región y comuna
+            const regionSelect = document.getElementById('region');
+            const comunaSelect = document.getElementById('comuna');
+
+            if (regionSelect && comunaSelect) {
+                regionSelect.addEventListener('change', function () {
+                    const region = this.value;
+                    // Limpia las comunas actuales
+                    comunaSelect.innerHTML = '<option value="" disabled selected>Selecciona una comuna</option>';
+                    if (comunasPorRegion[region]) {
+                        comunasPorRegion[region].forEach(comuna => {
+                            const option = document.createElement('option');
+                            option.value = comuna;
+                            option.textContent = comuna;
+                            comunaSelect.appendChild(option);
+                        });
+                    }
+                    // Vuelve a inicializar el select de Materialize
+                    M.FormSelect.init(comunaSelect);
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

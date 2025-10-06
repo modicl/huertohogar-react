@@ -1,0 +1,61 @@
+.filter-container {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.filter-title {
+    font-weight: bold;
+    margin-right: 15px;
+    color: #2E8B57;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.filter-btn {
+    cursor: pointer;
+    margin: 5px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background-color: white;
+    border: 1px solid #2E8B57;
+    transition: all 0.3s;
+    display: inline-block;
+    font-family: 'Montserrat', sans-serif;
+    color: #2E8B57;
+}
+
+.filter-btn.active {
+    background-color: #2E8B57;
+    color: white;
+}
+
+.filter-btn:hover {
+    background-color: #2E8B57;
+    color: white;
+}
+
+.filter-reset {
+    cursor: pointer;
+    margin: 5px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background-color: #f8f9fa;
+    border: 1px solid #666;
+    transition: all 0.3s;
+    display: inline-block;
+    font-family: 'Montserrat', sans-serif;
+    color: #666;
+}
+
+.filter-reset:hover {
+    background-color: #666;
+    color: white;
+}
+
+.no-products {
+    text-align: center;
+    padding: 40px;
+    font-family: 'Montserrat', sans-serif;
+    color: #666;
+}

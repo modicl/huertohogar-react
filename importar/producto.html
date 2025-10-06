@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tienda - Huerto Hogar</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+  <link rel="stylesheet" href="css/style.css">
+
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Playfair+Display:700&display=swap" rel="stylesheet">
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    /* Estilos para los botones de filtrado */
+    .filter-container {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .filter-title {
+      font-weight: bold;
+      margin-right: 15px;
+      color: #2E8B57;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .filter-btn {
+      cursor: pointer;
+      margin: 5px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      background-color: white;
+      border: 1px solid #2E8B57;
+      transition: all 0.3s;
+      display: inline-block;
+      font-family: 'Montserrat', sans-serif;
+      color: #2E8B57;
+    }
+
+    .filter-btn.active {
+      background-color: #2E8B57;
+      color: white;
+    }
+
+    .filter-btn:hover {
+      background-color: #2E8B57;
+      color: white;
+    }
+
+    .filter-reset {
+      cursor: pointer;
+      margin: 5px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      background-color: #f8f9fa;
+      border: 1px solid #666;
+      transition: all 0.3s;
+      display: inline-block;
+      font-family: 'Montserrat', sans-serif;
+      color: #666;
+    }
+
+    .filter-reset:hover {
+      background-color: #666;
+      color: white;
+    }
+
+    .no-products {
+      text-align: center;
+      padding: 40px;
+      font-family: 'Montserrat', sans-serif;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <!-- Navbar , se pueden agregar/editar links, seguir logica -->
+    <nav class="navbar-custom">
+      <div class="nav-wrapper">
+        <a href="#" data-target="mobile-menu" class="sidenav-trigger">
+          <i class="material-icons" style="color:#2E8B57;">menu</i>
+        </a>
+        <div class="navbar-logo-container">
+          <img src="images/logo_navbar.png" alt="Logo HuertoHogar" class="navbar-logo">
+        </div>
+        <div class="navbar-center hide-on-med-and-down">
+          <a href="index.html">Inicio</a>
+          <a href="producto.html">Productos</a>
+          <a href="nosotros.html">Nosotros</a>
+          <a href="contacto.html">Contacto</a>
+          <a href="blog.html">Blog</a>
+          <!-- Searchbar Bootstrap -->
+          <form class="d-flex navbar-bootstrap-search" role="search"
+            style="display:inline-flex; align-items:center; margin-left: 24px; max-width: 260px;">
+            <input class="form-control" type="search" placeholder="Buscar..." aria-label="Buscar"
+              style="border-radius: 20px; border: 2px solid #2E8B57; background: #fff; color: #333; font-family: 'Montserrat', sans-serif; height: 36px; font-size: 1rem; padding-left: 36px;">
+            <button class="btn" type="submit"
+              style="background: #2E8B57; color: #fff; border-radius: 20px; margin-left: -52px; margin-bottom: 8px; min-width:36px; height:36px; display:flex; align-items:center; justify-content:center;">
+              <i class="material-icons" style="vertical-align: middle;">search</i>
+            </button>
+          </form>
+          <a href="registro.html" title="Iniciar sesión / Registrarse">
+            <i class="fa fa-user" style="font-size: 1.2rem; color: #2E8B57;"></i>
+          </a>
+          <a href="carrito.html" title="Carrito de compras">
+            <i class="fa fa-shopping-cart" style="font-size: 1.2rem; color: #2E8B57;"></i>
+            Tu carrito
+          </a>
+
+
+        </div>
+      </div>
+    </nav>
+    <!-- Menú móvil -->
+    <ul class="sidenav" id="mobile-menu">
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="producto.html">Productos</a></li>
+      <li><a href="nosotros.html">Nosotros</a></li>
+      <li><a href="contacto.html">Contacto</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="registro.html"> Registro/Iniciar Sesión<i class="fa fa-user"
+            style="font-size: 1.0rem; color: #2E8B57; margin-right: -9px;"></i></a></li>
+      <li> <a href="carrito.html" title="Carrito de compras">
+          <i class="fa fa-shopping-cart" style="font-size: 1.0rem; color: #2E8B57; margin-right: -7px;"></i>
+          Tu carrito
+        </a></li>
+      <li>
+        <form class="d-flex navbar-bootstrap-search" role="search"
+          style="display:inline-flex; align-items:center; margin-left: 24px; max-width: 260px;">
+          <input class="form-control" type="search" placeholder="Buscar..." aria-label="Buscar"
+            style="border-radius: 20px; border: 2px solid #2E8B57; background: #fff; color: #333; font-family: 'Montserrat', sans-serif; height: 36px; font-size: 1rem; padding-left: 36px;">
+          <button class="btn" type="submit"
+            style="background: #2E8B57; color: #fff; border-radius: 20px; margin-left: -52px; margin-bottom: 8px; min-width:36px; height:36px; display:flex; align-items:center; justify-content:center;">
+            <i class="material-icons" style="vertical-align: middle;">search</i>
+          </button>
+        </form>
+      </li>
+    </ul>
+  </header>
+
+  <main class="container">
+    <h1 class="section-title center" style="margin: 30px 0;">Nuestra Tienda</h1>
+
+    <!-- Botones de filtrado por categoría -->
+    <div class="filter-container center">
+      <span class="filter-title">🥑 Filtrar por categoría:</span>
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-category="all">Todos los productos</button>
+        <button class="filter-btn" data-category="frutas">Frutas Frescas</button>
+        <button class="filter-btn" data-category="verduras">Verduras Orgánicas</button>
+        <button class="filter-btn" data-category="organicos">Productos Orgánicos</button>
+        <button class="filter-btn" data-category="lacteos">Productos Lácteos</button>
+        <button class="filter-reset" id="reset-filters">Limpiar filtros</button>
+      </div>
+    </div>
+
+    <div class="row" id="product-list"></div>
+
+    <!-- Mensaje cuando no hay productos -->
+    <div id="no-products" class="no-products" style="display: none;">
+      <h5>No hay productos en esta categoría</h5>
+      <p>Intenta con otra categoría o vuelve a ver todos los productos.</p>
+    </div>
+  </main>
+
+  <footer class="footer-custom">
+    <div class="container">
+      <div class="row">
+        <div class="col s12 m4">
+          <h5 class="footer-title">Tiendas físicas y horarios</h5>
+          <p class="footer-text">
+            <b>Sede Santiago</b>: Av. Providencia 1234, Santiago. <br>Tel: +56 2 2345 6789<br>
+            <b>Sede Puerto Montt</b>: Calle Los Lagos 456, Puerto Montt. <br>Tel: +56 65 1234 5678<br>
+            <b>Sede Villarica</b>: Av. Costanera 789, Villarica. <br>Tel: +56 45 8765 4321<br>
+            <b>Sede Nacimiento</b>: Calle Principal 321, Nacimiento. <br>Tel: +56 43 5678 1234<br>
+            <b>Sede Viña del Mar</b>: Av. Libertad 654, Viña del Mar. <br>Tel: +56 32 4321 8765<br>
+            <b>Sede Valparaíso</b>: Calle Esmeralda 987, Valparaíso. <br>Tel: +56 32 8765 4321<br>
+            <b>Sede Concepción</b>: Av. O'Higgins 159, Concepción. <br>Tel: +56 41 1234 5678
+          </p>
+          <p class="footer-text" style="margin-top:12px;">
+            <b>Horario</b> : Lun - Dom 9:00 - 18:00
+          </p>
+        </div>
+        <div class="col s12 m4">
+          <h5 class="footer-title">Contáctanos</h5>
+          <p class="footer-text"></p>
+          <p class="footer-text" style="margin-top:12px;">
+            <b>Cotizaciones, Ventas, Dudas, Cuidados y Problemas.</b>
+          </p>
+          <p class="footer-text" style="margin-top:12px;">
+            contacto@huertohogar.cl
+          </p>
+          <p class="footer-text" style="margin-top:16px; padding-left: 20%;">
+            <a href="https://x.com/" target="_blank" rel="noopener" class="social-icon">
+              <i class="fab fa-x-twitter"></i>
+            </a>
+            <a href="https://instagram.com/" target="_blank" rel="noopener" class="social-icon">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://facebook.com/" target="_blank" rel="noopener" class="social-icon">
+              <i class="fab fa-facebook"></i>
+            </a>
+            <a href="https://wa.me/" target="_blank" rel="noopener" class="social-icon">
+              <i class="fab fa-whatsapp"></i>
+            </a>
+          </p>
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5536.629332167769!2d-70.6234142226731!3d-33.428933296413284!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9662cf62a2cb75c3%3A0x6c84dd8e2bc13a00!2sAv.%20Providencia%201234%2C%207500571%20Providencia%2C%20Santiago%2C%20Regi%C3%B3n%20Metropolitana!5e1!3m2!1ses-419!2scl!4v1757381392848!5m2!1ses-419!2scl"
+            width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+        <div class="col s12 m4">
+          <h5 class="footer-title">Suscríbete</h5>
+          <p class="footer-text" style="margin-top:15px;">
+            Recibe notificaciones anticipadas sobre descuentos, promociones exclusivas y el lanzamiento de
+            nuevas colecciones!
+          </p>
+          <div class="input-field ">
+            <input id="email" type="email" class="validate" required data-parsley-type="email"
+              data-parsley-type-message="Debes ingresar un correo válido."
+              data-parsley-required-message="Debes ingresar tu correo electrónico." data-parsley-trigger="keyup">
+            <label for="email">Correo electrónico</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JS Materialize -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <!-- Script de productos -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Lista de productos con categorías
+      const products = [
+        { id: 1, name: "Manzanas Fuji", price: "$1.200", img: "images/manzanas.jpg", category: "frutas", url: "DetalleProductos/Manzana.html" },
+        { id: 2, name: "Naranjas Valencia", price: "$1.000", img: "images/naranjas_producto.png", category: "frutas", url: "DetalleProductos/Naranjas.html" },
+        { id: 3, name: "Plátanos Cavendish", price: "$800", img: "images/platano_producto.jpg", category: "frutas", url: "DetalleProductos/platano.html" },
+        { id: 4, name: "Zanahorias Orgánicas", price: "$900", img: "images/zanahorias.jpg", category: "verduras", url: "DetalleProductos/zanahoria.html" },
+        { id: 5, name: "Espinacas Frescas", price: "$700", img: "images/espinacas_producto.png", category: "verduras" , url: "DetalleProductos/espinaca.html" },
+        { id: 6, name: "Pimientos Tricolores", price: "$1.500", img: "images/pimientos_productos.png", category: "verduras", url: "DetalleProductos/Pimiento.html" },
+        { id: 7, name: "Miel Orgánica", price: "$5.000", img: "images/miel_productos.png", category: "organicos", url: "DetalleProductos/Miel.html" },
+        { id: 8, name: "Quinua Orgánica", price: "$4.500", img: "images/quinoa.jpg", category: "organicos", url: "DetalleProductos/Quinoa.html" },
+        { id: 9, name: "Leche Entera", price: "$950", img: "images/leche.jpg", category: "lacteos", url: "DetalleProductos/Leche.html" },
+      ];
+
+      const productList = document.getElementById("product-list");
+      const noProductsMsg = document.getElementById("no-products");
+      const filterButtons = document.querySelectorAll(".filter-btn");
+      const resetButton = document.getElementById("reset-filters");
+      let currentCategory = "all";
+
+      // Función para renderizar productos según categoría
+      function renderProducts(category = "all") {
+        productList.innerHTML = "";
+        const filteredProducts = category === "all"
+          ? products
+          : products.filter(p => p.category === category);
+
+        if (filteredProducts.length === 0) {
+          noProductsMsg.style.display = "block";
+        } else {
+          noProductsMsg.style.display = "none";
+          filteredProducts.forEach(p => {
+            const card = `
+              <div class="col s12 m6 l4">
+                <div class="card hoverable">
+                  <div class="card-image">
+                    <a href="${p.url}">
+                      <img src="${p.img}" alt="${p.name}">
+                      <span class="card-title">${p.name}</span>
+                    </a>
+                  </div>
+                  <div class="card-content">
+                    <p>Precio: ${p.price}</p>
+                  </div>
+                  <div class="card-action">
+                    <a href="detalle.html?id=${p.id}" class="green-text">Ver Detalle</a>
+                  </div>
+                </div>
+              </div>`;
+            productList.innerHTML += card;
+          });
+        }
+      }
+
+      // Inicializar con todos los productos
+      renderProducts();
+
+      // Añadir event listeners a los botones de filtro
+      filterButtons.forEach(button => {
+        button.addEventListener("click", function () {
+          const category = this.getAttribute("data-category");
+
+          // Actualizar clase activa
+          filterButtons.forEach(btn => btn.classList.remove("active"));
+          this.classList.add("active");
+
+          // Filtrar productos
+          currentCategory = category;
+          renderProducts(category);
+        });
+      });
+
+      // Botón para resetear filtros
+      resetButton.addEventListener("click", function () {
+        filterButtons.forEach(btn => btn.classList.remove("active"));
+        document.querySelector('[data-category="all"]').classList.add("active");
+        currentCategory = "all";
+        renderProducts("all");
+      });
+    });
+  </script>
+</body>
+
+</html>

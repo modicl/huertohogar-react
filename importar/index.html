@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huerto Hogar</title>
+    <!-- CSS Materialize -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <!-- CSS Principal -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Fonts de Google -->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Playfair+Display:700&display=swap" rel="stylesheet">
+    <!-- Material Icons para los íconos de menú -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- JavaScript de Parsley -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- Necesita cargar JQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/parsley.js/2.9.2/parsley.min.js"></script>
+    <!-- Iconos de font awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+</head>
+
+<body>
+
+    <header>
+        <!-- Navbar , se pueden agregar/editar links, seguir logica -->
+        <nav class="navbar-custom">
+            <div class="nav-wrapper">
+                <a href="#" data-target="mobile-menu" class="sidenav-trigger">
+                    <i class="material-icons" style="color:#2E8B57;">menu</i>
+                </a>
+                <div class="navbar-logo-container">
+                    <img src="images/logo_navbar.png" alt="Logo HuertoHogar" class="navbar-logo">
+                </div>
+                <div class="navbar-center hide-on-med-and-down">
+                    <a href="index.html">Inicio</a>
+                    <a href="producto.html">Productos</a>
+                    <a href="nosotros.html">Nosotros</a>
+                    <a href="contacto.html">Contacto</a>
+                    <a href="blog.html">Blog</a>
+                    <!-- Searchbar Bootstrap -->
+                    <form class="d-flex navbar-bootstrap-search" role="search"
+                        style="display:inline-flex; align-items:center; margin-left: 24px; max-width: 260px;">
+                        <input class="form-control" type="search" placeholder="Buscar..." aria-label="Buscar"
+                            style="border-radius: 20px; border: 2px solid #2E8B57; background: #fff; color: #333; font-family: 'Montserrat', sans-serif; height: 36px; font-size: 1rem; padding-left: 36px;">
+                        <button class="btn" type="submit"
+                            style="background: #2E8B57; color: #fff; border-radius: 20px; margin-left: -52px; margin-bottom: 8px; min-width:36px; height:36px; display:flex; align-items:center; justify-content:center;">
+                            <i class="material-icons" style="vertical-align: middle;">search</i>
+                        </button>
+                    </form>
+                    <a href="registro.html" title="Iniciar sesión / Registrarse">
+                        <i class="fa fa-user" style="font-size: 1.2rem; color: #2E8B57;"></i>
+                    </a>
+                    <a href="carrito.html" title="Carrito de compras">
+                        <i class="fa fa-shopping-cart" style="font-size: 1.2rem; color: #2E8B57;"></i>
+                        Tu carrito
+                    </a>
+
+
+                </div>
+            </div>
+        </nav>
+        <!-- Menú móvil -->
+        <ul class="sidenav" id="mobile-menu">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="producto.html">Productos</a></li>
+            <li><a href="nosotros.html">Nosotros</a></li>
+            <li><a href="contacto.html">Contacto</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="registro.html"> Registro/Iniciar Sesión<i class="fa fa-user"
+                        style="font-size: 1.0rem; color: #2E8B57; margin-right: -9px;"></i></a></li>
+            <li> <a href="carrito.html" title="Carrito de compras">
+                    <i class="fa fa-shopping-cart" style="font-size: 1.0rem; color: #2E8B57; margin-right: -7px;"></i>
+                    Tu carrito
+                </a></li>
+            <li>
+                <form class="d-flex navbar-bootstrap-search" role="search"
+                    style="display:inline-flex; align-items:center; margin-left: 24px; max-width: 260px;">
+                    <input class="form-control" type="search" placeholder="Buscar..." aria-label="Buscar"
+                        style="border-radius: 20px; border: 2px solid #2E8B57; background: #fff; color: #333; font-family: 'Montserrat', sans-serif; height: 36px; font-size: 1rem; padding-left: 36px;">
+                    <button class="btn" type="submit"
+                        style="background: #2E8B57; color: #fff; border-radius: 20px; margin-left: -52px; margin-bottom: 8px; min-width:36px; height:36px; display:flex; align-items:center; justify-content:center;">
+                        <i class="material-icons" style="vertical-align: middle;">search</i>
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </header>
+
+
+
+    <main>
+
+        <!--Carousel para inicio-->
+        <div class="section no-pad-top" id="carousel">
+            <div class="carousel carousel-slider">
+                <a class="carousel-item" href="#one!"><img src="images/naranjas2.jpg">
+                    <div class="text-overlay">
+                        <h3>Frutas y verduras de temporada seleccionadas para ti</h3>
+                    </div>
+                </a>
+                <a class="carousel-item" href="#two!"><img src="images/miel.jpg"></a>
+                <a class="carousel-item" href="#three!"><img src="images/cajon.jpg">
+                    <div class="text-overlay">
+                        <h3>Disfruta de lo mejor en productos orgánicos cosechados en nuestra huerta</h3>
+                    </div>
+                </a>
+                <a class="carousel-item" href="#four!"><img src="images/manzanas.jpg"></a>
+                <a class="carousel-item" href="#five!"><img src="images/vegetales.jpg">
+                    <div class="text-overlay">
+                        <h3>Productos frescos y de calidad directo a la puerta de tu hogar</h3>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+
+        <div class="container section" style="margin-top: 50px;">
+            <div class="row valign-wrapper">
+                <div class="col s12 m6">
+                    <h1>TIENDA ONLINE</h1>
+                    <p class="section-subtitle">
+                        ¡Accede a nuestro catálogo completo de productos frescos y orgánicos, además puedes comprar
+                        desde la comodidad de tu casa!
+                    </p>
+                    <a class="waves-effect waves-light btn btn-large btn-action" href="producto.html">
+                        <i class="material-icons left">local_grocery_store</i>Ir a la tienda
+                    </a>
+                </div>
+                <div class="col s12 m6 hide-on-small-only">
+                    <div><img src="images/tienda_online2.jpg" alt="Tienda Online" class="responsive-img "></div>
+                </div>
+            </div>
+        </div>
+
+
+        <!--Sección ejemplares catálogo-->
+        <div class="section" id="productos">
+            <div class="container">
+                <h1 class="section-title center">Nuestros productos</h1>
+                <p class="section-subtitle center">Explora nuestra variedad de productos frescos y orgánicos. A
+                    continuación, te mostramos algunos de ellos:</p>
+                <div class="row">
+                    <div class="col s12 m4">
+                        <div class="card">
+                            <div class="card-image">
+                                <img src="images/quinoa.jpg" alt="Producto 1">
+                                <span class="card-title">Quinoa Orgánica</span>
+                            </div>
+                            <div class="card-content">
+                                <p>$3000 (500g)</p>
+                            </div>
+                            <div class="card-action">
+                                <a href="producto.html">Comprar</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col s12 m4">
+                        <div class="card">
+                            <div class="card-image">
+                                <img src="images/leche.jpg" alt="Producto 2">
+                                <span class="card-title">Leche Entera</span>
+                            </div>
+                            <div class="card-content">
+                                <p>$1200 (1L)</p>
+                            </div>
+                            <div class="card-action">
+                                <a href="producto.html">Comprar</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col s12 m4">
+                        <div class="card">
+                            <div class="card-image">
+                                <img src="images/manzanas.jpg" alt="Producto 3">
+                                <span class="card-title"> Manzana Fuji</span>
+                            </div>
+                            <div class="card-content">
+                                <p> $1200 (1 kg)</p>
+                            </div>
+                            <div class="card-action">
+                                <a href="producto.html"> Comprar</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col s12 m4">
+                        <div class="card">
+                            <div class="card-image">
+                                <img src="images/naranjas_producto.png" alt="Producto 4">
+                                <span class="card-title"> Naranja Valencia</span>
+                            </div>
+                            <div class="card-content">
+                                <p> $1000 (1 kg)</p>
+                            </div>
+                            <div class="card-action">
+                                <a href="producto.html"> Comprar</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col s12 m4">
+                        <div class="card">
+                            <div class="card-image">
+                                <img src="images/zanahorias.jpg" alt="Producto 5">
+                                <span class="card-title"> Zanahorias Orgánicas</span>
+                            </div>
+                            <div class="card-content">
+                                <p> $900 (1 kg)</p>
+                            </div>
+                            <div class="card-action">
+                                <a href="producto.html"> Comprar</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col s12 m4">
+                        <div class="card">
+                            <div class="card-image">
+                                <img src="images/pimientos_productos.png" alt="Producto 6">
+                                <span class="card-title"> Pimientos Tricolores</span>
+                            </div>
+                            <div class="card-content">
+                                <p> $1500 (1 kg)</p>
+                            </div>
+                            <div class="card-action">
+                                <a href="producto.html"> Comprar</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!--Seccion testimonios-->
+        <div class="section" id="testimonios">
+            <div class="container">
+                <h1 class="section-title center">Testimonios</h1>
+                <p class="testimonial-card-text">Nuestros clientes están constantemente entregándonos sus
+                    opiniones.<br>Revisa algunas de ellas!</p>
+                <div class="row">
+                    <div class="col s12 m4">
+                        <div class="card testimonial-card">
+                            <div class="card-content">
+                                <p>"Los productos de Huerto Hogar son frescos y de excelente calidad. ¡Mi familia está
+                                    encantada!"</p>
+                            </div>
+                            <div class="card-action">
+                                <span>- María G.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col s12 m4">
+                        <div class="card testimonial-card">
+                            <div class="card-content">
+                                <p>"El servicio al cliente es inmejorable. Siempre me ayudan a elegir los mejores
+                                    productos para mi mesa."</p>
+                            </div>
+                            <div class="card-action">
+                                <span>- Darío Q.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col s12 m4">
+                        <div class="card testimonial-card">
+                            <div class="card-content">
+                                <p>"Me encanta la variedad de productos orgánicos que ofrecen. ¡Recomiendo Huerto Hogar
+                                    a todos mis amigos!"</p>
+                            </div>
+                            <div class="card-action">
+                                <span>- Carla M.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Sección-->
+    </main>
+
+
+
+
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="row">
+                <div class="col s12 m4">
+                    <h5 class="footer-title">Tiendas físicas y horarios</h5>
+                    <p class="footer-text">
+                        <b>Sede Santiago</b>: Av. Providencia 1234, Santiago. <br>Tel: +56 2 2345 6789<br>
+                        <b>Sede Puerto Montt</b>: Calle Los Lagos 456, Puerto Montt. <br>Tel: +56 65 1234 5678<br>
+                        <b>Sede Villarica</b>: Av. Costanera 789, Villarica. <br>Tel: +56 45 8765 4321<br>
+                        <b>Sede Nacimiento</b>: Calle Principal 321, Nacimiento. <br>Tel: +56 43 5678 1234<br>
+                        <b>Sede Viña del Mar</b>: Av. Libertad 654, Viña del Mar. <br>Tel: +56 32 4321 8765<br>
+                        <b>Sede Valparaíso</b>: Calle Esmeralda 987, Valparaíso. <br>Tel: +56 32 8765 4321<br>
+                        <b>Sede Concepción</b>: Av. O'Higgins 159, Concepción. <br>Tel: +56 41 1234 5678
+                    </p>
+                    <p class="footer-text" style="margin-top:12px;">
+                        <b>Horario</b> : Lun - Dom 9:00 - 18:00
+                    </p>
+                </div>
+                <div class="col s12 m4">
+                    <h5 class="footer-title">Contáctanos</h5>
+                    <p class="footer-text"></p>
+                    <p class="footer-text" style="margin-top:12px;">
+                        <b>Cotizaciones, Ventas, Dudas, Cuidados y Problemas.</b>
+                    </p>
+                    <p class="footer-text" style="margin-top:12px;">
+                        contacto@huertohogar.cl
+                    </p>
+                    <p class="footer-text" style="margin-top:16px; padding-left: 20%;">
+                        <a href="https://x.com/" target="_blank" rel="noopener" class="social-icon">
+                            <i class="fab fa-x-twitter"></i>
+                        </a>
+                        <a href="https://instagram.com/" target="_blank" rel="noopener" class="social-icon">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://facebook.com/" target="_blank" rel="noopener" class="social-icon">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="https://wa.me/" target="_blank" rel="noopener" class="social-icon">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </p>
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5536.629332167769!2d-70.6234142226731!3d-33.428933296413284!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9662cf62a2cb75c3%3A0x6c84dd8e2bc13a00!2sAv.%20Providencia%201234%2C%207500571%20Providencia%2C%20Santiago%2C%20Regi%C3%B3n%20Metropolitana!5e1!3m2!1ses-419!2scl!4v1757381392848!5m2!1ses-419!2scl"
+                        width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+                <div class="col s12 m4">
+                    <h5 class="footer-title">Suscribete</h5>
+                    <p class="footer-text" style="margin-top:15px;">
+                        Recibe notificaciones anticipadas sobre descuentos, promociones exclusivas y el lanzamiento de
+                        nuevas colecciones!
+                    </p>
+                    <div class="input-field ">
+                        <input id="email" type="email" class="validate" required data-parsley-type="email"
+                            data-parsley-type-message="Debes ingresar un correo válido."
+                            data-parsley-required-message="Debes ingresar tu correo electrónico."
+                            data-parsley-trigger="keyup">
+                        <label for="email">Correo electrónico</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+</body>
+<!-- JavaScript Materialize-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<!-- JavaScript que creariamos nosotros-->
+<script src="js/main.js"></script>
+
+
+</html>

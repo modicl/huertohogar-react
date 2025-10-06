@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Huerto Hogar</title>
+  <!-- CSS Materialize -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <!-- CSS Principal -->
+  <link rel="stylesheet" href="../css/style.css">
+  <!-- Fonts de Google -->
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Playfair+Display:700&display=swap" rel="stylesheet">
+  <!-- Material Icons para los íconos de menú -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- JavaScript de Parsley -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <!-- Necesita cargar JQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/parsley.js/2.9.2/parsley.min.js"></script>
+  <!-- Iconos de font awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+</head>
+
+<body>
+
+  <header>
+    <!-- Navbar , se pueden agregar/editar links, seguir logica -->
+    <nav class="navbar-custom">
+      <div class="nav-wrapper">
+        <a href="#" data-target="mobile-menu" class="sidenav-trigger">
+          <i class="material-icons" style="color:#2E8B57;">menu</i>
+        </a>
+        <div class="navbar-logo-container">
+          <img src="../images/logo_navbar.png" alt="Logo HuertoHogar" class="navbar-logo">
+        </div>
+        <div class="navbar-center hide-on-med-and-down">
+          <a href="../index.html">Inicio</a>
+          <a href="../producto.html">Productos</a>
+          <a href="../nosotros.html">Nosotros</a>
+          <a href="../contacto.html">Contacto</a>
+          <a href="../blog.html">Blog</a>
+          <form class="d-flex" role="search"
+            style="display:inline-flex; align-items:center; margin-left: 24px; max-width: 260px;">
+            <input type="search" placeholder="Buscar..." aria-label="Buscar"
+              style="border-radius: 20px; border: 2px solid #2E8B57; background: #fff; color: #333; font-family: 'Montserrat', sans-serif; height: 36px; font-size: 1rem; padding-left: 36px;">
+            <button class="btn" type="submit"
+              style="background: #2E8B57; color: #fff; border-radius: 20px; margin-left: -52px; margin-bottom: 8px; min-width:36px; height:36px; display:flex; align-items:center; justify-content:center;">
+              <i class="material-icons" style="vertical-align: middle;">search</i>
+            </button>
+          </form>
+          <a href="registro.html" title="Iniciar sesión / Registrarse">
+            <i class="fa fa-user" style="font-size: 1.2rem; color: #2E8B57;"></i>
+          </a>
+          <a href="carrito.html" title="Carrito de compras">
+            <i class="fa fa-shopping-cart" style="font-size: 1.2rem; color: #2E8B57;"></i>
+            Tu carrito
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <main class="container section">
+      <div class="card">
+        <div class="card-image">
+          <!-- Carrusel con dos imágenes vacías -->
+          <div class="carousel">
+            <a class="carousel-item" href="#one!"><img src="../images/leche.jpg" alt="Imagen 1 Manzanas Fuji"></a>
+            <a class="carousel-item" href="#two!"><img src="../images/leche.jpg" alt="Imagen 2 Manzanas Fuji"></a>
+          </div>
+        </div>
+        <div class="card-content">
+          <span class="card-title">Leche Entera</span>
+          <p><strong>Código:</strong> PL001</p>
+          <p>Leche entera, fresca y nutritiva, ideal para el desayuno o la preparación de postres.</p>
+          <p><strong>Precio:</strong> $1.000 / L</p>
+        </div>
+        <div class="card-action">
+          <a href="carrito.html" class="btn green">Añadir al carrito</a>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer-custom">
+      <div class="container">
+        <div class="row">
+          <div class="col s12 m4">
+            <h5 class="footer-title">Tiendas físicas y horarios</h5>
+            <p class="footer-text">
+              <b>Sede Santiago</b>: Av. Providencia 1234, Santiago. <br>Tel: +56 2 2345 6789<br>
+              <b>Sede Puerto Montt</b>: Calle Los Lagos 456, Puerto Montt. <br>Tel: +56 65 1234 5678<br>
+              <b>Sede Villarica</b>: Av. Costanera 789, Villarica. <br>Tel: +56 45 8765 4321<br>
+              <b>Sede Nacimiento</b>: Calle Principal 321, Nacimiento. <br>Tel: +56 43 5678 1234<br>
+              <b>Sede Viña del Mar</b>: Av. Libertad 654, Viña del Mar. <br>Tel: +56 32 4321 8765<br>
+              <b>Sede Valparaíso</b>: Calle Esmeralda 987, Valparaíso. <br>Tel: +56 32 8765 4321<br>
+              <b>Sede Concepción</b>: Av. O'Higgins 159, Concepción. <br>Tel: +56 41 1234 5678
+            </p>
+            <p class="footer-text" style="margin-top:12px;">
+              <b>Horario</b> : Lun - Dom 9:00 - 18:00
+            </p>
+          </div>
+          <div class="col s12 m4">
+            <h5 class="footer-title">Contáctanos</h5>
+            <p class="footer-text"></p>
+            <p class="footer-text" style="margin-top:12px;">
+              <b>Cotizaciones, Ventas, Dudas, Cuidados y Problemas.</b>
+            </p>
+            <p class="footer-text" style="margin-top:12px;">
+              contacto@huertohogar.cl
+            </p>
+            <p class="footer-text" style="margin-top:16px; padding-left: 20%;">
+              <a href="https://x.com/" target="_blank" rel="noopener" class="social-icon">
+                <i class="fab fa-x-twitter"></i>
+              </a>
+              <a href="https://instagram.com/" target="_blank" rel="noopener" class="social-icon">
+                <i class="fab fa-instagram"></i>
+              </a>
+              <a href="https://facebook.com/" target="_blank" rel="noopener" class="social-icon">
+                <i class="fab fa-facebook"></i>
+              </a>
+              <a href="https://wa.me/" target="_blank" rel="noopener" class="social-icon">
+                <i class="fab fa-whatsapp"></i>
+              </a>
+            </p>
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5536.629332167769!2d-70.6234142226731!3d-33.428933296413284!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9662cf62a2cb75c3%3A0x6c84dd8e2bc13a00!2sAv.%20Providencia%201234%2C%207500571%20Providencia%2C%20Santiago%2C%20Regi%C3%B3n%20Metropolitana!5e1!3m2!1ses-419!2scl!4v1757381392848!5m2!1ses-419!2scl"
+              width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+          <div class="col s12 m4">
+            <h5 class="footer-title">Suscribete</h5>
+            <p class="footer-text" style="margin-top:15px;">
+              Recibe notificaciones anticipadas sobre descuentos, promociones exclusivas y el lanzamiento de
+              nuevas colecciones!
+            </p>
+            <div class="input-field ">
+              <input id="email" type="email" class="validate" required data-parsley-type="email"
+                data-parsley-type-message="Debes ingresar un correo válido."
+                data-parsley-required-message="Debes ingresar tu correo electrónico." data-parsley-trigger="keyup">
+              <label for="email">Correo electrónico</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+
+    <!-- Importar Materialize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+      // Inicializar menú móvil
+      document.addEventListener('DOMContentLoaded', function () {
+        M.Sidenav.init(document.querySelectorAll('.sidenav'));
+        M.Carousel.init(document.querySelectorAll('.carousel'));
+      });
+    </script>
+</body>
+
+</html>
