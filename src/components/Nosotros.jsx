@@ -1,9 +1,13 @@
 // Importar imagen desde assets
 import jardinImg from '../assets/images/jardin.jpg'
+import { Footer } from './Footer'
+import { Header } from './Header'
+
 
 export function Nosotros() {
   return (
     <>
+    <Header />
     <main className="container">
         <h1 className="section-title center" style={{margin: "30px 0"}}>¿Quiénes somos?</h1>
         <div className="row" id="product-list"></div>
@@ -58,6 +62,7 @@ export function Nosotros() {
             </div>
         </div>
     </div>
+    <Footer />
   </>
   );
 }

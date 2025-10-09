@@ -1,0 +1,65 @@
+.not-found-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 128px); /* Ajusta 128px si la altura de tu header+footer es diferente */
+  padding: 20px 0;
+}
+
+.not-found-container {
+  text-align: center;
+  background-color: #fff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  max-width: 600px;
+  width: 100%;
+}
+
+.not-found-404 {
+  font-family: 'Playfair Display', serif;
+  font-size: 10rem;
+  color: #8B4513;
+  margin: 0;
+  line-height: 1;
+  font-weight: 700;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.not-found-message {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  color: #333;
+  margin: 10px 0;
+}
+
+.not-found-description {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.not-found-button {
+  background-color: #2E8B57 !important;
+  border-radius: 25px;
+  padding: 0 25px;
+}
+
+.not-found-button:hover {
+  background-color: #246B47 !important;
+}
+
+/* Responsive */
+@media only screen and (max-width: 600px) {
+  .not-found-404 {
+    font-size: 7rem;
+  }
+
+  .not-found-message {
+    font-size: 2rem;
+  }
+
+  .not-found-container {
+    padding: 30px 20px;
+  }
+}

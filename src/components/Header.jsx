@@ -40,10 +40,10 @@ export function Header() {
                         <Link to="/registro" title="Iniciar sesión / Registrarse">
                             <i className="fa fa-user" style={{ fontSize: "1.2rem", color: "#2E8B57" }}></i>
                         </Link>
-                        <a href="carrito.html" title="Carrito de compras">
+                        <Link to="/checkout" title="Carrito de compras">
                             <i className="fa fa-shopping-cart" style={{ fontSize: "1.2rem", color: "#2E8B57" }}></i>
                             Tu carrito
-                        </a>
+                        </Link>
 
 
                     </div>
