@@ -1,0 +1,107 @@
+/* Layout general */
+.admin-layout {
+  display: flex;
+  position: relative;
+}
+
+/* Sidebar */
+.sidenav {
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidenav .user-view {
+  background-color: #2E8B57;
+  padding: 20px;
+}
+
+.sidenav .user-view .circle {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+}
+
+.sidenav .user-view .name,
+.sidenav .user-view .email {
+  color: white !important;
+  font-weight: 500;
+}
+
+.sidenav li > a {
+  color: #333;
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+}
+
+.sidenav li > a > i {
+  margin-right: 15px;
+  color: #2E8B57;
+}
+
+.sidenav li.active {
+  background-color: rgba(46, 139, 87, 0.1);
+}
+
+.sidenav li.active > a {
+  color: #2E8B57;
+  font-weight: 600;
+}
+
+.sidenav .subheader {
+  color: #8B4513;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 16px 32px 8px;
+}
+
+.sidenav .divider {
+  margin: 10px 0;
+}
+
+/* Botón hamburguesa (móvil) */
+.sidenav-trigger {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 997;
+  background-color: #2E8B57 !important;
+}
+
+/* Contenido principal */
+.main-content {
+  flex: 1;
+  padding: 30px;
+  margin-left: 300px;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* Responsive */
+@media only screen and (max-width: 992px) {
+  .main-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+}
+
+/* Hover effects */
+.sidenav li > a:hover {
+  background-color: rgba(46, 139, 87, 0.05);
+}
+
+/* Active link animation */
+.sidenav li.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: #2E8B57;
+}
+
+.sidenav li {
+  position: relative;
+}

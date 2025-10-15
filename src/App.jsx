@@ -12,6 +12,19 @@ import { useState, useEffect } from 'react'
 import { NotFound } from './components/NotFound'
 import { Boleta } from './components/Boleta'
 
+// Componentes de Admin
+import { AdminLogin } from './admin/pages/AdminLogin'
+import { Dashboard } from './admin/pages/Dashboard'
+import { ProductosPage } from './admin/pages/ProductosPage'
+import { PedidosPage } from './admin/pages/PedidosPage'
+import { UsuariosPage } from './admin/pages/UsuariosPage'
+import { ConfiguracionPage } from './admin/pages/ConfiguracionPage'
+import { BlogPage } from './admin/pages/BlogPage'
+import { PaginasPage } from './admin/pages/PaginasPage'
+import { ComentariosPage } from './admin/pages/ComentariosPage'
+import { AdminLayout } from './admin/components/AdminLayout'
+import { ProtectedRoute } from './admin/components/ProtectedRoute'
+
 export function App() {
 
   // Inicializando localStorage
@@ -27,6 +40,7 @@ export function App() {
 
   return (
     <Routes>
+      {/* ========== RUTAS PÚBLICAS ========== */}
       <Route path="/" element={<HomePage />}></Route>
       <Route path="/productos" element={<Producto />}></Route>
       <Route path="/nosotros" element={<Nosotros />}></Route>
@@ -35,6 +49,27 @@ export function App() {
       <Route path="/registro" element={<Registro />}></Route>
       <Route path="/checkout" element={<Checkout cartHuerto={cartHuerto} setCartHuerto={setCartHuerto} />}></Route>
       <Route path="/boleta" element={<Boleta />} />
+
+      {/* ========== RUTAS DE ADMINISTRACIÓN ========== */}
+      <Route path="/admin/login" element={<AdminLogin />} />
+      
+      {/* Rutas protegidas de admin con sidebar compartido */}
+      <Route path="/admin" element={
+        <ProtectedRoute>
+          <AdminLayout />
+        </ProtectedRoute>
+      }>
+        <Route index element={<Dashboard />} />
+        <Route path="productos" element={<ProductosPage />} />
+        <Route path="pedidos" element={<PedidosPage />} />
+        <Route path="usuarios" element={<UsuariosPage />} />
+        <Route path="configuracion" element={<ConfiguracionPage />} />
+        <Route path="blog" element={<BlogPage />} />
+        <Route path="paginas" element={<PaginasPage />} />
+        <Route path="comentarios" element={<ComentariosPage />} />
+      </Route>
+
+      {/* 404 */}
       <Route path="/*" element={<NotFound />}></Route>
     </Routes>
 
