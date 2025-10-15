@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Checkout.css';
 
 export function Checkout({ cartHuerto, setCartHuerto }) {
+    const navigate = useNavigate();
+    const selectRef = useRef(null);
+    
     // Estado para información de envío
     const [shippingInfo, setShippingInfo] = useState({
         fullName: '',
@@ -38,6 +42,22 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
         }));
     };
 
+    // Inicializar select de Materialize
+    useEffect(() => {
+        if (window.M && selectRef.current) {
+            const instances = window.M.FormSelect.init(selectRef.current, {
+                classes: 'validate'
+            });
+            
+            // Cleanup al desmontar
+            return () => {
+                if (instances && instances.destroy) {
+                    instances.destroy();
+                }
+            };
+        }
+    }, []);
+
     // Función para agregar productos de prueba
     const addTestProducts = () => {
         const testProducts = [
@@ -59,17 +79,31 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
             return;
         }
 
+        // Validar que todos los campos del formulario estén completos
+        if (!shippingInfo.fullName || !shippingInfo.email || !shippingInfo.phone || 
+            !shippingInfo.address || !shippingInfo.city || !shippingInfo.region || 
+            !shippingInfo.zipCode) {
+            alert('Por favor completa todos los campos de envío');
+            return;
+        }
+
         console.log('Procesando compra...', { 
             productos: cartHuerto, 
             envio: shippingInfo, 
             total: calculateTotal() 
         });
         
-        // Limpiar el carrito después de la compra
+        // Navegar a la boleta con los datos de la compra
+        navigate('/boleta', {
+            state: {
+                cartItems: cartHuerto,
+                shippingInfo: shippingInfo
+            }
+        });
+        
+        // Limpiar el carrito después de navegar a la boleta
         setCartHuerto([]);
         localStorage.removeItem('cartHuerto');
-        
-        alert('¡Compra procesada exitosamente!');
     };
 
     // Función para actualizar cantidad de un producto
@@ -296,17 +330,29 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
                                         </div>
                                         <div className="input-field col s12 m6">
                                             <select
+                                                ref={selectRef}
                                                 name="region"
                                                 value={shippingInfo.region}
                                                 onChange={handleInputChange}
                                                 required
                                             >
                                                 <option value="" disabled>Selecciona Región</option>
-                                                <option value="Metropolitana">Metropolitana</option>
-                                                <option value="Valparaíso">Valparaíso</option>
-                                                <option value="Biobío">Biobío</option>
-                                                <option value="La Araucanía">La Araucanía</option>
-                                                <option value="Los Lagos">Los Lagos</option>
+                                                <option value="Región de Arica y Parinacota">Región de Arica y Parinacota</option>
+                                                <option value="Región de Tarapacá">Región de Tarapacá</option>
+                                                <option value="Región de Antofagasta">Región de Antofagasta</option>
+                                                <option value="Región de Atacama">Región de Atacama</option>
+                                                <option value="Región de Coquimbo">Región de Coquimbo</option>
+                                                <option value="Región de Valparaíso">Región de Valparaíso</option>
+                                                <option value="Región Metropolitana de Santiago">Región Metropolitana de Santiago</option>
+                                                <option value="Región del Libertador General Bernardo O'Higgins">Región del Libertador General Bernardo O'Higgins</option>
+                                                <option value="Región del Maule">Región del Maule</option>
+                                                <option value="Región de Ñuble">Región de Ñuble</option>
+                                                <option value="Región del Biobío">Región del Biobío</option>
+                                                <option value="Región de La Araucanía">Región de La Araucanía</option>
+                                                <option value="Región de Los Ríos">Región de Los Ríos</option>
+                                                <option value="Región de Los Lagos">Región de Los Lagos</option>
+                                                <option value="Región de Aysén del General Carlos Ibáñez del Campo">Región de Aysén del General Carlos Ibáñez del Campo</option>
+                                                <option value="Región de Magallanes y de la Antártica Chilena">Región de Magallanes y de la Antártica Chilena</option>
                                             </select>
                                             <label>Región</label>
                                         </div>

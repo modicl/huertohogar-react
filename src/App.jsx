@@ -10,6 +10,7 @@ import { Registro } from './components/Registro'
 import { Checkout } from './components/Checkout'
 import { useState, useEffect } from 'react'
 import { NotFound } from './components/NotFound'
+import { Boleta } from './components/Boleta'
 
 export function App() {
 
@@ -33,7 +34,8 @@ export function App() {
       <Route path="/blog" element={<Blog />}></Route>
       <Route path="/registro" element={<Registro />}></Route>
       <Route path="/checkout" element={<Checkout cartHuerto={cartHuerto} setCartHuerto={setCartHuerto} />}></Route>
-       <Route path="/*" element={<NotFound  />}></Route>
+      <Route path="/boleta" element={<Boleta />} />
+      <Route path="/*" element={<NotFound />}></Route>
     </Routes>
 
   )
