@@ -11,6 +11,7 @@ import { Checkout } from './components/Checkout'
 import { useState, useEffect } from 'react'
 import { NotFound } from './components/NotFound'
 import { Boleta } from './components/Boleta'
+import { DetalleProducto } from './components/DetalleProducto';
 
 // Componentes de Admin
 import { AdminLogin } from './admin/pages/AdminLogin'
@@ -49,6 +50,9 @@ export function App() {
       <Route path="/registro" element={<Registro />}></Route>
       <Route path="/checkout" element={<Checkout cartHuerto={cartHuerto} setCartHuerto={setCartHuerto} />}></Route>
       <Route path="/boleta" element={<Boleta />} />
+
+      <Route path="/productos" element={<Producto />} />
+      <Route path="/producto/:id" element={<DetalleProducto />} />
 
       {/* ========== RUTAS DE ADMINISTRACIÓN ========== */}
       <Route path="/admin/login" element={<AdminLogin />} />
