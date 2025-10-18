@@ -1,6 +1,25 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 export function Footer() {
+  const [subscribeMsg, setSubscribeMsg] = useState('');
+  const [email, setEmail] = useState('');
+
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    // Validación correo "suscribete" con Parsley
+    if (!email) {
+      setSubscribeMsg('Debes ingresar tu correo electrónico.');
+      return;
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setSubscribeMsg('Debes ingresar un correo válido.');
+      return;
+    }
+    setSubscribeMsg('¡Te has suscrito correctamente!');
+    setTimeout(() => setSubscribeMsg(''), 3500);
+    setEmail('');
+  };
+
   return (
     <footer className="footer-custom">
         <div className="container">
@@ -53,19 +72,24 @@ export function Footer() {
                         Recibe notificaciones anticipadas sobre descuentos, promociones exclusivas y el lanzamiento de
                         nuevas colecciones!
                     </p>
-                    <div className="input-field">
+                    <form className="input-field" onSubmit={handleSubscribe}>
                         <input 
                             id="email" 
-                            type="email" 
-                            className="validate" 
-                            required 
-                            data-parsley-type="email"
-                            data-parsley-type-message="Debes ingresar un correo válido."
+                            name="email"
+                            type="email"
+                            required
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
                             data-parsley-required-message="Debes ingresar tu correo electrónico."
-                            data-parsley-trigger="keyup" 
+                            data-parsley-type-message="Debes ingresar un correo válido."
+                            data-parsley-trigger="keyup"
                         />
                         <label htmlFor="email">Correo electrónico</label>
-                    </div>
+                        <button className="btn btn-subscribe" style={{marginTop: "10px"}} type="submit">Enviar</button>
+                        {subscribeMsg && (
+                          <span style={{marginTop: '10px', color: '#2E8B57', fontWeight: 'bold', display: 'block'}}>{subscribeMsg}</span>
+                        )}
+                    </form>
                 </div>
             </div>
         </div>

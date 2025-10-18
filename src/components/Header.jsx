@@ -19,7 +19,9 @@ export function Header() {
                         <i className="material-icons" style={{ color: "#2E8B57" }}>menu</i>
                     </a>
                     <div className="navbar-logo-container">
-                        <img src={logoNavbar} alt="Logo HuertoHogar" className="navbar-logo" />
+                        <Link to="/">
+                            <img src={logoNavbar} alt="Logo HuertoHogar" className="navbar-logo" />
+                        </Link>
                     </div>
                     <div className="navbar-center hide-on-med-and-down">
                         <Link to="/">Inicio</Link>

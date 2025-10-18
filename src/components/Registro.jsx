@@ -324,7 +324,7 @@ export function Registro() {
                 <h5 className="center" style={{ fontFamily: "'Playfair Display', serif", color: "#8B4513" }}>Registro</h5>
                 <form id="formulario-registro" className="formulario-pagina" ref={registroFormRef} onSubmit={handleRegistro}>
                   <div className="row">
-                    <div className="input-field col s4">
+                    <div className="input-field col s12">
                       <input
                         placeholder="Nombre"
                         id="first_name"
@@ -340,7 +340,7 @@ export function Registro() {
                         data-parsley-trigger="keyup" />
                       <label htmlFor="first_name">Nombre</label>
                     </div>
-                    <div className="input-field col s4">
+                    <div className="input-field col s12">
                       <input
                         placeholder="Apellido Paterno"
                         id="last_name"
@@ -358,7 +358,7 @@ export function Registro() {
                         data-parsley-trigger="keyup" />
                       <label htmlFor="last_name">Apellido Paterno</label>
                     </div>
-                    <div className="input-field col s4">
+                    <div className="input-field col s12">
                       <input
                         placeholder="Apellido Materno"
                         id="apellido_materno"
