@@ -42,8 +42,28 @@ export function Header() {
             {/* Navbar , se pueden agregar/editar links, seguir logica */}
             <nav className="navbar-custom">
                 <div className="nav-wrapper">
-                    <a href="#" data-target="mobile-menu" className="sidenav-trigger">
-                        <i className="material-icons" style={{ color: "#2E8B57" }}>menu</i>
+                    <a 
+                        href="#" 
+                        data-target="mobile-menu" 
+                        className="sidenav-trigger"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '0 12px',
+                            height: '100%'
+                        }}
+                    >
+                        <i 
+                            className="material-icons" 
+                            style={{ 
+                                color: "#fff",
+                                fontSize: "28px",
+                                lineHeight: "1"
+                            }}
+                        >
+                            menu
+                        </i>
                     </a>
                     <div className="navbar-logo-container">
                         <Link to="/">

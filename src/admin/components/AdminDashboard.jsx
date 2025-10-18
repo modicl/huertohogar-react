@@ -1,7 +1,51 @@
-import React from 'react'
-import './AdminDashboard.css'
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ordenes as ordenesIniciales } from '../../data/ordenes.jsx';
+import { productos } from '../../data/productos.jsx';
+import './AdminDashboard.css';
 
 export function AdminDashboard() {
+  const navigate = useNavigate();
+  const [ordenes, setOrdenes] = useState([]);
+
+  // Cargar órdenes desde localStorage o usar datos iniciales
+  useEffect(() => {
+    const storedOrdenes = JSON.parse(localStorage.getItem('ordenes') || JSON.stringify(ordenesIniciales));
+    setOrdenes(storedOrdenes);
+  }, []);
+
+  // Calcular estadísticas
+  const totalOrdenes = ordenes.length;
+  const ordenesPendientes = ordenes.filter(o => o.estado === 'Pendiente').length;
+  const ventasTotales = ordenes
+    .filter(o => o.estado !== 'Cancelado')
+    .reduce((sum, o) => sum + o.total, 0);
+  
+  // Productos con stock bajo (menos de 10 unidades)
+  const storedProductos = JSON.parse(localStorage.getItem('productos') || JSON.stringify(productos));
+  const stockBajo = storedProductos.filter(p => p.stock < 10).length;
+
+  // Obtener las 5 órdenes más recientes
+  const ordenesRecientes = [...ordenes]
+    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+    .slice(0, 5);
+
+  // Función para obtener clase de badge según estado
+  const getBadgeClass = (estado) => {
+    switch (estado) {
+      case 'Completado':
+        return 'badge-success';
+      case 'Pendiente':
+        return 'badge-warning';
+      case 'Cancelado':
+        return 'badge-danger';
+      case 'En Proceso':
+        return 'badge-status';
+      default:
+        return 'badge-status';
+    }
+  };
+
   return (
     <div className="dashboard-wrapper">
       <div className="dashboard-header">
@@ -17,8 +61,10 @@ export function AdminDashboard() {
               <i className="material-icons">attach_money</i>
             </div>
             <div className="stat-content">
-              <p className="stat-label">Ventas del Día</p>
-              <h5 className="stat-value">$10.000</h5>
+              <p className="stat-label">Ventas Totales</p>
+              <h5 className="stat-value">
+                ${ventasTotales.toLocaleString('es-CL')}
+              </h5>
             </div>
           </div>
         </div>
@@ -29,8 +75,8 @@ export function AdminDashboard() {
               <i className="material-icons">shopping_cart</i>
             </div>
             <div className="stat-content">
-              <p className="stat-label">Nuevos Pedidos</p>
-              <h5 className="stat-value">4</h5>
+              <p className="stat-label">Total Pedidos</p>
+              <h5 className="stat-value">{totalOrdenes}</h5>
             </div>
           </div>
         </div>
@@ -38,11 +84,11 @@ export function AdminDashboard() {
         <div className="col s12 m6 l3">
           <div className="stat-card stat-card-green">
             <div className="stat-icon">
-              <i className="material-icons">poll</i>
+              <i className="material-icons">pending</i>
             </div>
             <div className="stat-content">
-              <p className="stat-label">Ventas Totales</p>
-              <h5 className="stat-value">35</h5>
+              <p className="stat-label">Pedidos Pendientes</p>
+              <h5 className="stat-value">{ordenesPendientes}</h5>
             </div>
           </div>
         </div>
@@ -54,7 +100,7 @@ export function AdminDashboard() {
             </div>
             <div className="stat-content">
               <p className="stat-label">Stock Bajo</p>
-              <h5 className="stat-value">7</h5>
+              <h5 className="stat-value">{stockBajo}</h5>
             </div>
           </div>
         </div>
@@ -67,70 +113,76 @@ export function AdminDashboard() {
             <div className="card-content">
               <div className="card-header">
                 <span className="card-title-admin">Pedidos Recientes</span>
-                <a href="#!" className="btn-flat waves-effect">Ver todos</a>
+                <button 
+                  onClick={() => navigate('/admin/pedidos')}
+                  className="btn-flat waves-effect"
+                  style={{ color: '#2E8B57', fontWeight: '600' }}
+                >
+                  Ver todos
+                </button>
               </div>
               
-              <table className="responsive-table striped admin-table">
-                <thead>
-                  <tr>
-                    <th>ID Pedido</th>
-                    <th>Cliente</th>
-                    <th>Total</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="font-medium">#FR001</td>
-                    <td>Juan Pérez</td>
-                    <td className="font-medium">$250</td>
-                    <td><span className="badge-status badge-success">Completado</span></td>
-                    <td>
-                      <a href="#!" className="btn-small btn-flat waves-effect">
-                        <i className="material-icons">visibility</i>
-                      </a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="font-medium">#FR002</td>
-                    <td>María López</td>
-                    <td className="font-medium">$150</td>
-                    <td><span className="badge-status badge-warning">Pendiente</span></td>
-                    <td>
-                      <a href="#!" className="btn-small btn-flat waves-effect">
-                        <i className="material-icons">visibility</i>
-                      </a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="font-medium">#FR003</td>
-                    <td>Carlos Gómez</td>
-                    <td className="font-medium">$320</td>
-                    <td><span className="badge-status badge-success">Completado</span></td>
-                    <td>
-                      <a href="#!" className="btn-small btn-flat waves-effect">
-                        <i className="material-icons">visibility</i>
-                      </a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="font-medium">#FR004</td>
-                    <td>Ana Torres</td>
-                    <td className="font-medium">$90</td>
-                    <td><span className="badge-status badge-danger">Cancelado</span></td>
-                    <td>
-                      <a href="#!" className="btn-small btn-flat waves-effect">
-                        <i className="material-icons">visibility</i>
-                      </a>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              {ordenesRecientes.length > 0 ? (
+                <table className="responsive-table striped admin-table">
+                  <thead>
+                    <tr>
+                      <th>ID Pedido</th>
+                      <th>Cliente</th>
+                      <th>Fecha</th>
+                      <th>Total</th>
+                      <th>Estado</th>
+                      <th style={{ textAlign: 'center' }}>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ordenesRecientes.map((orden) => (
+                      <tr key={orden.id}>
+                        <td className="font-medium">#{orden.id_usuario}</td>
+                        <td>{orden.shippingInfo.nombre}</td>
+                        <td>
+                          {new Date(orden.fecha).toLocaleDateString('es-CL', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          })}
+                        </td>
+                        <td className="font-medium">
+                          ${orden.total.toLocaleString('es-CL')}
+                        </td>
+                        <td>
+                          <span className={`badge-status ${getBadgeClass(orden.estado)}`}>
+                            {orden.estado}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button
+                            onClick={() => navigate('/admin/pedidos')}
+                            className="btn-small btn-flat waves-effect"
+                            style={{ color: '#3498db' }}
+                          >
+                            <i className="material-icons">visibility</i>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '40px',
+                  color: '#7f8c8d'
+                }}>
+                  <i className="material-icons" style={{ fontSize: '48px', marginBottom: '16px' }}>
+                    shopping_cart
+                  </i>
+                  <p style={{ fontSize: '1.1em' }}>No hay pedidos registrados</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

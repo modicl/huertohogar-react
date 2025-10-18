@@ -17,6 +17,9 @@ export function Producto() {
     ordenar: 'ninguno'
   });
 
+  // Estado para mostrar/ocultar filtros en móvil
+  const [showFiltros, setShowFiltros] = useState(false);
+
   // Obtener categorías únicas
   const categorias = ['todas', ...new Set(productos.map(p => p.categoria))];
 
@@ -116,19 +119,68 @@ export function Producto() {
           Nuestra Tienda
         </h1>
 
-        <div className="row" style={{ display: 'flex', gap: '30px' }}>
+        {/* Botón para mostrar filtros en móvil */}
+        <div 
+          className="filtros-mobile-button"
+          style={{
+            display: 'none',
+            marginBottom: '20px'
+          }}
+        >
+          <button
+            onClick={() => setShowFiltros(!showFiltros)}
+            style={{
+              width: '100%',
+              padding: '14px 20px',
+              background: '#2E8B57',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '1.05em',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              boxShadow: '0 2px 8px rgba(46, 139, 87, 0.3)',
+              transition: 'background 0.3s'
+            }}
+            onMouseOver={(e) => e.target.style.background = '#246844'}
+            onMouseOut={(e) => e.target.style.background = '#2E8B57'}
+          >
+            <i className="material-icons">
+              {showFiltros ? 'expand_less' : 'tune'}
+            </i>
+            {showFiltros ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+            <span style={{
+              marginLeft: 'auto',
+              background: 'rgba(255,255,255,0.2)',
+              padding: '4px 12px',
+              borderRadius: '12px',
+              fontSize: '0.9em'
+            }}>
+              {productosFiltrados.length} productos
+            </span>
+          </button>
+        </div>
+
+        <div className="productos-layout">
           {/* Sidebar de Filtros */}
-          <div style={{
-            width: '280px',
-            flexShrink: 0,
-            background: '#fff',
-            borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-            padding: '25px',
-            height: 'fit-content',
-            position: 'sticky',
-            top: '20px'
-          }}>
+          <div 
+            className={`filtros-sidebar ${showFiltros ? 'show-mobile' : 'hide-mobile'}`}
+            style={{
+              width: '280px',
+              flexShrink: 0,
+              background: '#fff',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              padding: '25px',
+              height: 'fit-content',
+              position: 'sticky',
+              top: '20px'
+            }}
+          >
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -366,11 +418,14 @@ export function Producto() {
           {/* Grid de Productos */}
           <div style={{ flex: 1 }}>
             {productosFiltrados.length > 0 ? (
-              <div style={{ 
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "24px"
-              }}>
+              <div 
+                className="productos-grid"
+                style={{ 
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                  gap: "24px"
+                }}
+              >
                 {productosFiltrados.map(producto => (
                   <div
                     className="product-card"

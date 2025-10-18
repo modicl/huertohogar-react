@@ -48,6 +48,106 @@
     color: #666;
 }
 
+/* Responsive Design para Productos */
+
+/* Desktop - Layout normal (> 768px) */
+.productos-layout {
+    display: flex;
+    gap: 30px;
+}
+
+.filtros-sidebar {
+    display: block !important;
+}
+
+.filtros-mobile-button {
+    display: none !important;
+}
+
+/* Tablet y Mobile (< 768px) */
+@media only screen and (max-width: 768px) {
+    /* Mostrar botón de filtros en móvil */
+    .filtros-mobile-button {
+        display: block !important;
+    }
+
+    /* Layout en columna */
+    .productos-layout {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Sidebar de filtros en móvil */
+    .filtros-sidebar {
+        width: 100% !important;
+        position: static !important;
+        margin-bottom: 20px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    /* Ocultar sidebar si no está activo en móvil */
+    .filtros-sidebar.hide-mobile {
+        display: none !important;
+    }
+
+    .filtros-sidebar.show-mobile {
+        display: block !important;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    /* Grid de productos - 1 columna en móvil */
+    .productos-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 20px !important;
+    }
+
+    /* Tarjetas de producto en móvil - Ancho completo */
+    .product-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+    }
+
+    /* Ajustar padding del container en móvil */
+    .container {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+}
+
+/* Móviles pequeños (< 480px) */
+@media only screen and (max-width: 480px) {
+    /* Título más pequeño */
+    .section-title {
+        font-size: 1.8em !important;
+    }
+
+    /* Botones más grandes para tocar fácilmente */
+    .product-card button {
+        padding: 10px 20px !important;
+        font-size: 0.95em !important;
+    }
+
+    /* Radio buttons más espaciados */
+    .filtros-sidebar label {
+        padding: 12px 14px !important;
+    }
+}
+
+/* Animación para mostrar filtros */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .filter-reset:hover {
     background-color: #666;
     color: white;
