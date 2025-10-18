@@ -1,5 +1,6 @@
 import '../App.css' // CSS Vacio, en caso de necesitarlo...
 import { Carousel } from './Carousel';
+import { Link } from 'react-router-dom';
 
 // Importar todas las imágenes
 import tiendaOnline from '../assets/images/tienda_online2.jpg'
@@ -27,9 +28,9 @@ export function HomePage() {
                                 ¡Accede a nuestro catálogo completo de productos frescos y orgánicos, además puedes comprar
                                 desde la comodidad de tu casa!
                             </p>
-                            <a className="waves-effect waves-light btn btn-large btn-action" href="producto.html">
+                            <Link className="waves-effect waves-light btn btn-large btn-action" to="/productos">
                                 <i className="material-icons left">local_grocery_store</i>Ir a la tienda
-                            </a>
+                            </Link>
                         </div>
                         <div className="col s12 m6 hide-on-small-only">
                             <div><img src={tiendaOnline} alt="Tienda Online" className="responsive-img" /></div>
@@ -54,7 +55,7 @@ export function HomePage() {
                                         <p>$3000 (500g)</p>
                                     </div>
                                     <div className="card-action">
-                                        <a href="producto.html">Comprar</a>
+                                        <Link to="/productos">Comprar</Link>
                                     </div>
                                 </div>
                             </div>
@@ -68,7 +69,7 @@ export function HomePage() {
                                         <p>$1200 (1L)</p>
                                     </div>
                                     <div className="card-action">
-                                        <a href="producto.html">Comprar</a>
+                                        <Link to="/productos">Comprar</Link>
                                     </div>
                                 </div>
                             </div>
@@ -82,7 +83,7 @@ export function HomePage() {
                                         <p> $1200 (1 kg)</p>
                                     </div>
                                     <div className="card-action">
-                                        <a href="producto.html"> Comprar</a>
+                                        <Link to="/productos"> Comprar</Link>
                                     </div>
                                 </div>
                             </div>
@@ -96,7 +97,7 @@ export function HomePage() {
                                         <p> $1000 (1 kg)</p>
                                     </div>
                                     <div className="card-action">
-                                        <a href="producto.html"> Comprar</a>
+                                        <Link to="/productos"> Comprar</Link>
                                     </div>
                                 </div>
                             </div>
@@ -110,7 +111,7 @@ export function HomePage() {
                                         <p> $900 (1 kg)</p>
                                     </div>
                                     <div className="card-action">
-                                        <a href="producto.html"> Comprar</a>
+                                        <Link to="/productos"> Comprar</Link>
                                     </div>
                                 </div>
                             </div>
@@ -124,7 +125,7 @@ export function HomePage() {
                                         <p> $1500 (1 kg)</p>
                                     </div>
                                     <div className="card-action">
-                                        <a href="producto.html"> Comprar</a>
+                                        <Link to="/productos"> Comprar</Link>
                                     </div>
                                 </div>
                             </div>

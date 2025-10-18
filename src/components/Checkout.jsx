@@ -29,6 +29,18 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
         zipCode: ''
     });
 
+    // Cargar carrito del localStorage al montar el componente
+    useEffect(() => {
+        const loadCart = () => {
+            const storedCart = JSON.parse(localStorage.getItem('cartHuerto') || '[]');
+            if (storedCart && storedCart.length > 0) {
+                setCartHuerto(storedCart);
+            }
+        };
+        
+        loadCart();
+    }, [setCartHuerto]);
+
     // Función para calcular subtotal
     const calculateSubtotal = () => {
         if (!cartHuerto || cartHuerto.length === 0) return 0;
@@ -99,11 +111,26 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
             return;
         }
 
-        console.log('Procesando compra...', { 
-            productos: cartHuerto, 
-            envio: shippingInfo, 
-            total: calculateTotal() 
-        });
+        // Crear nueva orden
+        const nuevaOrden = {
+            id: Date.now(),
+            id_usuario: 'USR-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+            fecha: new Date().toISOString(),
+            estado: 'Pendiente',
+            productos: cartHuerto,
+            shippingInfo: shippingInfo,
+            subtotal: calculateSubtotal(),
+            envio: calculateShipping(),
+            total: calculateTotal(),
+            notas: ''
+        };
+
+        // Guardar la orden en localStorage
+        const ordenesExistentes = JSON.parse(localStorage.getItem('ordenes') || '[]');
+        const nuevasOrdenes = [...ordenesExistentes, nuevaOrden];
+        localStorage.setItem('ordenes', JSON.stringify(nuevasOrdenes));
+
+        console.log('Orden creada exitosamente:', nuevaOrden);
         
         // Navegar a la boleta con los datos de la compra
         navigate('/boleta', {

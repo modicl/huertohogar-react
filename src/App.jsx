@@ -35,8 +35,36 @@ export function App() {
 
   // Cambiamos carrito cada vez que cambie el carrito
   useEffect(() => {
-    localStorage.setItem('carrito', JSON.stringify(cartHuerto))
+    localStorage.setItem('cartHuerto', JSON.stringify(cartHuerto))
   }, [cartHuerto])
+
+  // Sincronizar carrito con localStorage cuando cambia desde otros componentes
+  useEffect(() => {
+    const syncCart = () => {
+      const updatedCart = JSON.parse(localStorage.getItem('cartHuerto') || "[]");
+      setCartHuerto(updatedCart);
+    };
+
+    // Escuchar cambios en localStorage
+    window.addEventListener('storage', syncCart);
+    
+    // Verificar cambios periódicamente (fallback para misma pestaña)
+    const interval = setInterval(() => {
+      const currentCart = JSON.parse(localStorage.getItem('cartHuerto') || "[]");
+      setCartHuerto(prev => {
+        // Solo actualizar si realmente cambió
+        if (JSON.stringify(prev) !== JSON.stringify(currentCart)) {
+          return currentCart;
+        }
+        return prev;
+      });
+    }, 500);
+
+    return () => {
+      window.removeEventListener('storage', syncCart);
+      clearInterval(interval);
+    };
+  }, []);
 
 
   return (

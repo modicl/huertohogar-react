@@ -1,7 +1,6 @@
-import React from 'react'
+import React from 'react';
+import { EnConstruccion } from './EnConstruccion';
 
 export function Usuarios() {
-  return (
-    <div>Usuarios</div>
-  )
+  return <EnConstruccion />;
 }

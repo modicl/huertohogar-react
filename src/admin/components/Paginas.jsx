@@ -1,7 +1,6 @@
-import React from 'react'
+import React from 'react';
+import { EnConstruccion } from './EnConstruccion';
 
 export function Paginas() {
-  return (
-    <div>Paginas</div>
-  )
+  return <EnConstruccion />;
 }
