@@ -21,7 +21,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="footer-custom">
+    <footer className="footer-custom" data-testid="footer">
         <div className="container">
             <div className="row">
                 <div className="col s12 m4">
@@ -61,7 +61,7 @@ export function Footer() {
                             <i className="fab fa-whatsapp"></i>
                         </a>
                     </p>
-                    <iframe
+                    <iframe data-testid="mapa-google"
                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5536.629332167769!2d-70.6234142226731!3d-33.428933296413284!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9662cf62a2cb75c3%3A0x6c84dd8e2bc13a00!2sAv.%20Providencia%201234%2C%207500571%20Providencia%2C%20Santiago%2C%20Regi%C3%B3n%20Metropolitana!5e1!3m2!1ses-419!2scl!4v1757381392848!5m2!1ses-419!2scl"
                         width="600" height="450" style={{border: "0"}} allowFullScreen="" loading="lazy"
                         referrerPolicy="no-referrer-when-downgrade"></iframe>
@@ -73,11 +73,11 @@ export function Footer() {
                         nuevas colecciones!
                     </p>
                     <form className="input-field" onSubmit={handleSubscribe}>
-                        <input 
+                        <input
+                            data-testid="correo"
                             id="email" 
                             name="email"
-                            type="email"
-                            required
+                            type="text"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
                             data-parsley-required-message="Debes ingresar tu correo electrónico."

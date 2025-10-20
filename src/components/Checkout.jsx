@@ -17,7 +17,7 @@ function HeaderSoloLogo() {
 export function Checkout({ cartHuerto, setCartHuerto }) {
     const navigate = useNavigate();
     const selectRef = useRef(null);
-    
+
     // Estado para información de envío
     const [shippingInfo, setShippingInfo] = useState({
         fullName: '',
@@ -37,7 +37,7 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
                 setCartHuerto(storedCart);
             }
         };
-        
+
         loadCart();
     }, [setCartHuerto]);
 
@@ -72,7 +72,7 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
             const instances = window.M.FormSelect.init(selectRef.current, {
                 classes: 'validate'
             });
-            
+
             // Cleanup al desmontar
             return () => {
                 if (instances && instances.destroy) {
@@ -97,15 +97,15 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
     // Función para procesar la compra
     const handlePurchase = (e) => {
         e.preventDefault();
-        
+
         if (!cartHuerto || cartHuerto.length === 0) {
             alert('No hay productos en el carrito');
             return;
         }
 
         // Validar que todos los campos del formulario estén completos
-        if (!shippingInfo.fullName || !shippingInfo.email || !shippingInfo.phone || 
-            !shippingInfo.address || !shippingInfo.city || !shippingInfo.region || 
+        if (!shippingInfo.fullName || !shippingInfo.email || !shippingInfo.phone ||
+            !shippingInfo.address || !shippingInfo.city || !shippingInfo.region ||
             !shippingInfo.zipCode) {
             alert('Por favor completa todos los campos de envío');
             return;
@@ -131,7 +131,7 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
         localStorage.setItem('ordenes', JSON.stringify(nuevasOrdenes));
 
         console.log('Orden creada exitosamente:', nuevaOrden);
-        
+
         // Navegar a la boleta con los datos de la compra
         navigate('/boleta', {
             state: {
@@ -139,7 +139,7 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
                 shippingInfo: shippingInfo
             }
         });
-        
+
         // Limpiar el carrito después de navegar a la boleta
         setCartHuerto([]);
         localStorage.removeItem('cartHuerto');
@@ -152,12 +152,12 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
             return;
         }
 
-        const updatedCart = cartHuerto.map(item => 
-            item.id === productId 
+        const updatedCart = cartHuerto.map(item =>
+            item.id === productId
                 ? { ...item, quantity: newQuantity }
                 : item
         );
-        
+
         setCartHuerto(updatedCart);
         localStorage.setItem('cartHuerto', JSON.stringify(updatedCart));
     };
@@ -175,7 +175,7 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
             <>
                 <HeaderSoloLogo />
                 <main>
-                    <div className="container checkout-container">
+                    <div data-testid="carro-sinitems" className="container checkout-container">
                         <div className="row">
                             <div className="col s12">
                                 <div className="card-panel" style={{ textAlign: 'center', padding: '50px' }}>
@@ -212,7 +212,7 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
         <>
             <HeaderSoloLogo />
             <main>
-                <div className="container checkout-container">
+                <div data-testid="carro-sinitems" className="container checkout-container">
                     {/* Título */}
                     <div className="row">
                         <div className="col s12">
@@ -262,8 +262,8 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
                                                 Categoría: {item.categoria}
                                             </p>
                                             <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
-                                                <button 
-                                                    className="btn-small" 
+                                                <button
+                                                    className="btn-small"
                                                     style={{ backgroundColor: '#ff6b6b', marginRight: '10px' }}
                                                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                                 >
@@ -272,15 +272,15 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
                                                 <span style={{ margin: '0 15px', fontWeight: 'bold' }}>
                                                     {item.quantity}
                                                 </span>
-                                                <button 
-                                                    className="btn-small" 
+                                                <button
+                                                    className="btn-small"
                                                     style={{ backgroundColor: '#2E8B57', marginRight: '10px' }}
                                                     onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                                 >
                                                     +
                                                 </button>
-                                                <button 
-                                                    className="btn-small red" 
+                                                <button
+                                                    className="btn-small red"
                                                     onClick={() => removeFromCart(item.id)}
                                                     title="Eliminar producto"
                                                 >
@@ -479,6 +479,7 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
 
                                 {/* Botón de compra */}
                                 <button
+                                    data-testid="btn-finalizar-compra"
                                     className="btn-large waves-effect waves-light purchase-button"
                                     onClick={handlePurchase}
                                 >

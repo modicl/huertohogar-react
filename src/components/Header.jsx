@@ -70,7 +70,7 @@ export function Header() {
                             <img src={logoNavbar} alt="Logo HuertoHogar" className="navbar-logo" />
                         </Link>
                     </div>
-                    <div className="navbar-center hide-on-med-and-down">
+                    <div data-testid="navbar" className="navbar-center hide-on-med-and-down">
                         <Link to="/">Inicio</Link>
                         <Link to="/productos">Productos</Link>
                         <Link to="/nosotros">Nosotros</Link>
@@ -86,11 +86,11 @@ export function Header() {
                                 <i className="material-icons" style={{ verticalAlign: "middle" }}>search</i>
                             </button>
                         </form>
-                        <Link to="/registro" title="Iniciar sesión / Registrarse">
+                        <Link to="/registro" title="Registro/Iniciar Sesión">
                             <i className="fa fa-user" style={{ fontSize: "1.2rem", color: "#2E8B57" }}></i>
                         </Link>
                         <Link to="/checkout" title="Carrito de compras" style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
-                            <i className="fa fa-shopping-cart" style={{ fontSize: "1.2rem", color: "#2E8B57" }}></i>
+                            <i className="fa fa-shopping-cart" data-testid="carrito" style={{ fontSize: "1.2rem", color: "#2E8B57" }}></i>
                             {cartCount > 0 && (
                                 <span style={{
                                     position: "absolute",
@@ -119,7 +119,7 @@ export function Header() {
                 </div>
             </nav>
             {/* Menú móvil */}
-            <ul className="sidenav" id="mobile-menu">
+            <ul data-testid="navbar" className="sidenav" id="mobile-menu">
                 <li><Link to="/">Inicio</Link></li>
                 <li><Link to="/productos">Productos</Link></li>
                 <li><Link to="/nosotros">Nosotros</Link></li>
@@ -128,7 +128,7 @@ export function Header() {
                 <li><Link to="/registro"> Registro/Iniciar Sesión<i className="fa fa-user"
                     style={{ fontSize: "1.0rem", color: "#2E8B57", marginRight: "-9px" }}></i></Link></li>
                 <li>
-                    <Link to="/checkout" title="Carrito de compras" style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                    <Link to="/checkout" data-testid="carrito" itle="Carrito de compras" style={{ position: "relative", display: "flex", alignItems: "center" }}>
                         <i className="fa fa-shopping-cart" style={{ fontSize: "1.0rem", color: "#2E8B57", marginRight: "8px" }}></i>
                         Tu carrito
                         {cartCount > 0 && (
