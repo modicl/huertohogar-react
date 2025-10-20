@@ -25,7 +25,7 @@ export function AdminLayout() {
   };
   
   return (
-    <div className="admin-layout">
+    <div className="admin-layout" data-testid="admin-layout">
       {/* Sidebar */}
       <ul id="slide-out" className="sidenav sidenav-fixed">
         {/* User View */}
@@ -105,7 +105,7 @@ export function AdminLayout() {
         
         {/* Logout */}
         <li>
-          <a onClick={handleLogout} className="waves-effect" style={{ cursor: 'pointer' }}>
+          <a data-testid="logout" onClick={handleLogout} className="waves-effect" style={{ cursor: 'pointer' }}>
             <i className="material-icons">exit_to_app</i>Cerrar Sesión
           </a>
         </li>

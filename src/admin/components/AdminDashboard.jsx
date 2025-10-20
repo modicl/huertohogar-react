@@ -55,7 +55,7 @@ export function AdminDashboard() {
 
       {/* Estadísticas principales */}
       <div className="row">
-        <div className="col s12 m6 l3">
+        <div className="col s12 m6 l3" data-testid="ventas-dash">
           <div className="stat-card stat-card-blue">
             <div className="stat-icon">
               <i className="material-icons">attach_money</i>
@@ -69,7 +69,7 @@ export function AdminDashboard() {
           </div>
         </div>
         
-        <div className="col s12 m6 l3">
+        <div className="col s12 m6 l3" data-testid="totalpedidos-dash">
           <div className="stat-card stat-card-purple">
             <div className="stat-icon">
               <i className="material-icons">shopping_cart</i>
@@ -81,7 +81,7 @@ export function AdminDashboard() {
           </div>
         </div>
         
-        <div className="col s12 m6 l3">
+        <div className="col s12 m6 l3" data-testid="pendientes-dash">
           <div className="stat-card stat-card-green">
             <div className="stat-icon">
               <i className="material-icons">pending</i>
@@ -93,7 +93,7 @@ export function AdminDashboard() {
           </div>
         </div>
         
-        <div className="col s12 m6 l3">
+        <div className="col s12 m6 l3" data-testid="stock-dash">
           <div className="stat-card stat-card-orange">
             <div className="stat-icon">
               <i className="material-icons">warning</i>

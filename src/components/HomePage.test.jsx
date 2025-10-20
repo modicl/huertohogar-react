@@ -52,7 +52,7 @@ describe('HomePage Component', () => {
     // Verificar que el botón de acción está presente
     const botonTienda = screen.getByRole('link', { name: /Ir a la tienda/i });
     expect(botonTienda).toBeInTheDocument();
-    expect(botonTienda).toHaveAttribute('href', 'producto.html');
+    expect(botonTienda).toHaveAttribute('href', '/productos');
   });
 
   // Test 3: Verificar que muestra los 6 productos del catálogo

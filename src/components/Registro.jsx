@@ -266,8 +266,8 @@ export function Registro() {
 
   return (
     <>
-    <Header />
-      <main>
+      <Header />
+      <main data-testid="registro">
         <div className="container" style={{ marginTop: "30px" }}>
           <div className="row">
             {/* Login a la izquierda */}
@@ -276,8 +276,8 @@ export function Registro() {
                 <h5 className="center titulo-formulario"
                   style={{ fontFamily: "'Playfair Display', serif", color: "#8B4513" }}>Iniciar
                   Sesión</h5>
-                <form id="form-login" className="formulario-pagina" ref={loginFormRef} onSubmit={handleLogin}>
-                  <div className="input-field">
+                <form id="form-login" className="formulario-pagina" ref={loginFormRef} onSubmit={handleLogin} data-testid="inicio-sesion">
+                  <div className="input-field" >
                     <input
                       id="login_email"
                       name="email"
@@ -322,7 +322,7 @@ export function Registro() {
             <div className="col s12 m6">
               <div className="card-panel" style={{ borderRadius: "20px", padding: "32px" }}>
                 <h5 className="center" style={{ fontFamily: "'Playfair Display', serif", color: "#8B4513" }}>Registro</h5>
-                <form id="formulario-registro" className="formulario-pagina" ref={registroFormRef} onSubmit={handleRegistro}>
+                <form id="formulario-registro" className="formulario-pagina" ref={registroFormRef} onSubmit={handleRegistro} data-testid="formulario-registro">
                   <div className="row">
                     <div className="input-field col s12">
                       <input
@@ -426,6 +426,7 @@ export function Registro() {
 
                     <div className="input-field col s12">
                       <input
+                       data-testid="rut-registro"
                         id="rut"
                         name="rut"
                         type="text"
@@ -527,7 +528,7 @@ export function Registro() {
           </div>
         </div>
       </main>
-    <Footer />
+      <Footer />
     </>
 
   )

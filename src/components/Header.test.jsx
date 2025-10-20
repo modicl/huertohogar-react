@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { Header } from './Header';
@@ -18,7 +18,14 @@ const renderHeader = () => {
 
 describe("Componente Header", () => {
 
+    beforeEach(() => {
+        localStorage.clear();
+        vi.clearAllMocks();
+    });
 
+    afterEach(() => {
+        localStorage.clear();
+    });
 
     it('debe renderizar el componente Header sin errores', () => {
         renderHeader();
@@ -83,9 +90,84 @@ describe("Componente Header", () => {
         expect(carritos).toHaveLength(2);
     });
 
+    it('debe inicializar el sidenav si window.M existe', () => {
+        const mockInit = vi.fn();
+        window.M = {
+            Sidenav: {
+                init: mockInit
+            }
+        };
 
+        renderHeader();
 
+        expect(mockInit).toHaveBeenCalled();
+    });
 
+    it('debe mostrar el contador del carrito cuando hay items', () => {
+        localStorage.setItem('cartHuerto', JSON.stringify([
+            { id: 1, nombre: 'Producto 1', quantity: 2 },
+            { id: 2, nombre: 'Producto 2', quantity: 3 }
+        ]));
 
+        renderHeader();
 
+        const badges = screen.getAllByText('5');
+        expect(badges.length).toBeGreaterThan(0);
+    });
+
+    it('debe mostrar 99+ cuando hay mas de 99 items en el carrito', () => {
+        localStorage.setItem('cartHuerto', JSON.stringify([
+            { id: 1, nombre: 'Producto 1', quantity: 100 }
+        ]));
+
+        renderHeader();
+
+        const badges = screen.getAllByText('99+');
+        expect(badges.length).toBeGreaterThan(0);
+    });
+
+    it('no debe mostrar badge cuando el carrito esta vacio', () => {
+        localStorage.setItem('cartHuerto', JSON.stringify([]));
+
+        renderHeader();
+
+        const badge = screen.queryByText('0');
+        expect(badge).not.toBeInTheDocument();
+    });
+
+    it('debe tener dos formularios de busqueda', () => {
+        renderHeader();
+
+        const searchForms = screen.getAllByRole('search');
+        expect(searchForms).toHaveLength(2);
+    });
+
+    it('debe tener inputs de busqueda con placeholder correcto', () => {
+        renderHeader();
+
+        const searchInputs = screen.getAllByPlaceholderText('Buscar...');
+        expect(searchInputs).toHaveLength(2);
+    });
+
+    it('debe tener botones de busqueda con icono search', () => {
+        renderHeader();
+
+        const searchIcons = screen.getAllByText('search');
+        expect(searchIcons.length).toBeGreaterThan(0);
+    });
+
+    it('debe tener el logo con alt text correcto', () => {
+        renderHeader();
+
+        const logo = screen.getByAltText('Logo HuertoHogar');
+        expect(logo).toBeInTheDocument();
+        expect(logo).toHaveAttribute('src');
+    });
+
+    it('debe tener icono de menu hamburguesa', () => {
+        renderHeader();
+
+        const menuIcon = screen.getByText('menu');
+        expect(menuIcon).toBeInTheDocument();
+    });
 });
