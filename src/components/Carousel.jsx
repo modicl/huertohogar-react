@@ -21,26 +21,26 @@ export function Carousel() {
 
   return (
     <div className="section no-pad-top" id="carousel">
-      <div className="carousel carousel-slider">
-        <a className="carousel-item" href="#one!">
+      <div className="carousel carousel-slider" data-testid="carousel">
+        <a className="carousel-item" data-testid="carousel-unit" href="#one!">
           <img src={naranjas2} alt="Naranjas" />
           <div className="text-overlay">
             <h3>Frutas y verduras de temporada seleccionadas para ti</h3>
           </div>
         </a>
-        <a className="carousel-item" href="#two!">
+        <a className="carousel-item" data-testid="carousel-unit" href="#two!">
           <img src={miel} alt="Miel" />
         </a>
-        <a className="carousel-item" href="#three!">
+        <a className="carousel-item" data-testid="carousel-unit" href="#three!">
           <img src={cajon} alt="Cajón de productos" />
           <div className="text-overlay">
             <h3>Disfruta de lo mejor en productos orgánicos cosechados en nuestra huerta</h3>
           </div>
         </a>
-        <a className="carousel-item" href="#four!">
+        <a className="carousel-item" data-testid="carousel-unit" href="#four!">
           <img src={manzanas} alt="Manzanas" />
         </a>
-        <a className="carousel-item" href="#five!">
+        <a className="carousel-item" data-testid="carousel-unit" href="#five!">
           <img src={vegetales} alt="Vegetales" />
           <div className="text-overlay">
             <h3>Productos frescos y de calidad directo a la puerta de tu hogar</h3>
