@@ -13,9 +13,9 @@ export function Nosotros() {
         <div className="row" id="product-list"></div>
     </main>
 
-    <div className="section" id="nosotros">
+    <div className="section" id="nosotros" data-testid="nosotros-section">
         <div className="container">
-            <div className="row valign-wrapper">
+            <div className="row valign-wrapper" data-testid="nosotros-columns">
                {/* imagen de "nosotros" se agrega className de materialize para hacerla responsiva con sombra sutil y borde redondeado */}
                 <div className="col s12 m6">
                     <img src={jardinImg} alt="Imagen Nosotros" className="responsive-img z-depth-2"
@@ -23,7 +23,7 @@ export function Nosotros() {
                 </div>
                 <div className="col s12 m6">
                     <h2 className="center-align">Sobre Nosotros</h2>
-                    <p className="section-about-us">
+                    <p className="section-about-us" data-testid="nosotros-paragraph">
                         <i><b>HuertoHogar</b> es una tienda online dedicada a llevar la frescura y calidad de los
                             productos del campo
                             directamente a la puerta de nuestros clientes en Chile. Con más de 6 años de experiencia,
@@ -39,7 +39,7 @@ export function Nosotros() {
             <div className="row same-height">
                 <div className="col s12 m6">
                     <h2 className="center-align">Nuestra Misión</h2>
-                    <p className="section-about-us">
+                    <p className="section-about-us" data-testid="nosotros-paragraph">
                         Nuestra misión es proporcionar productos frescos y de calidad directamente desde el campo hasta
                         la puerta de nuestros clientes, garantizando la frescura y el sabor en cada entrega. Nos
                         comprometemos a fomentar una conexión más cercana entre los consumidores y los agricultores
@@ -49,7 +49,7 @@ export function Nosotros() {
                 </div>
                 <div className="col s12 m6">
                     <h2 className="center-align">Nuestra Visión</h2>
-                    <p className="section-about-us">
+                    <p className="section-about-us" data-testid="nosotros-paragraph">
                         Nuestra visión es ser la tienda online líder en la distribución de productos frescos y naturales
                         en
                         Chile, reconocida por nuestra calidad excepcional, servicio al cliente y compromiso con la
