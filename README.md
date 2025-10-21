@@ -70,7 +70,7 @@ npm run coverage
 
 ## 🧪 Testing
 
-El proyecto cuenta con una cobertura de código del **~59%**, incluyendo:
+El proyecto cuenta con una cobertura de código del **~99%**, incluyendo:
 - 230+ tests unitarios y de integración
 - Tests para todos los componentes principales
 - Tests del panel administrativo completo
