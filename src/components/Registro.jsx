@@ -4,6 +4,7 @@ import { Header } from "./Header.jsx";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext.jsx";
 import { PerfilUsuario } from "./PerfilUsuario.jsx";
+import { API_URLS } from "../config/api.js";
 
 export function Registro() {
   const { user, login } = useAuth();
@@ -225,7 +226,7 @@ export function Registro() {
 
       // Realizar la petición POST
       const response = await axios.post(
-        '/api/v1/usuarios',
+        API_URLS.usuarios.base,
         body
       );
 
@@ -295,7 +296,7 @@ export function Registro() {
 
       // Realizar la petición POST
       const response = await axios.post(
-        '/api/v1/usuarios/authenticate',
+        API_URLS.usuarios.authenticate,
         body
       );
 

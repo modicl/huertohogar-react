@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URLS } from '../../config/api.js';
 import './AdminDashboard.css';
 
 export function Productos() {
@@ -29,7 +30,7 @@ export function Productos() {
   const fetchCategorias = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/v1/categorias', {
+      const response = await axios.get(API_URLS.categorias, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -50,7 +51,7 @@ export function Productos() {
   const fetchPaises = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/v1/paises', {
+      const response = await axios.get(API_URLS.paises, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -88,7 +89,7 @@ export function Productos() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/v1/productos', {
+      const response = await axios.get(API_URLS.productos, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -226,7 +227,7 @@ export function Productos() {
 
       if (editingProduct) {
         // Actualizar producto existente (PATCH)
-        await axios.patch(`/api/v1/productos/${editingProduct.idProducto}`, productoData, config);
+        await axios.patch(`${API_URLS.productos}/${editingProduct.idProducto}`, productoData, config);
         if (window.M) {
           window.M.toast({
             html: 'Producto actualizado exitosamente',
@@ -235,7 +236,7 @@ export function Productos() {
         }
       } else {
         // Crear nuevo producto (POST)
-        await axios.post('/api/v1/productos', productoData, config);
+        await axios.post(API_URLS.productos, productoData, config);
         if (window.M) {
           window.M.toast({
             html: 'Producto creado exitosamente',
@@ -273,7 +274,7 @@ export function Productos() {
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`/api/v1/productos/${id}`, {
+        await axios.delete(`${API_URLS.productos}/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

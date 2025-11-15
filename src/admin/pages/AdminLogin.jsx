@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
+import { API_URLS } from '../../config/api.js';
 import './AdminLogin.css';
 
 export function AdminLogin() {
@@ -38,7 +39,7 @@ export function AdminLogin() {
 
       // Realizar la petición POST al endpoint de autenticación
       const response = await axios.post(
-        '/api/v1/usuarios/authenticate',
+        API_URLS.usuarios.authenticate,
         body
       );
 
