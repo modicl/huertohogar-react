@@ -1,8 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { Footer } from "./Footer.jsx";
 import { Header } from "./Header.jsx";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext.jsx";
+import { PerfilUsuario } from "./PerfilUsuario.jsx";
 
 export function Registro() {
+  const { user, login } = useAuth();
+  
   // Estados para todos los campos del formulario
   const [formData, setFormData] = useState({
     firstName: '',
@@ -47,6 +52,26 @@ export function Registro() {
     "Los Lagos": ["Puerto Montt", "Calbuco", "Cochamó", "Fresia", "Frutillar", "Los Muermos", "Llanquihue", "Maullín", "Puerto Varas", "Castro", "Ancud", "Chonchi", "Curaco de Vélez", "Dalcahue", "Puqueldón", "Queilén", "Quellón", "Quemchi", "Quinchao", "Osorno", "Puerto Octay", "Purranque", "Puyehue", "Río Negro", "San Juan de la Costa", "San Pablo"],
     "Aysén": ["Coyhaique", "Lago Verde", "Aysén", "Cisnes", "Guaitecas", "Cochrane", "O'Higgins", "Tortel", "Chile Chico", "Río Ibáñez"],
     "Magallanes": ["Punta Arenas", "Laguna Blanca", "Río Verde", "San Gregorio", "Cabo de Hornos", "Antártica", "Porvenir", "Primavera", "Timaukel", "Natales", "Torres del Paine"]
+  };
+
+  // Mapeo de regiones a IDs
+  const regionesIds = {
+    "Arica y Parinacota": 15,
+    "Tarapacá": 1,
+    "Antofagasta": 2,
+    "Atacama": 3,
+    "Coquimbo": 4,
+    "Valparaíso": 5,
+    "Metropolitana": 13,
+    "O'Higgins": 6,
+    "Maule": 7,
+    "Ñuble": 16,
+    "Biobío": 8,
+    "La Araucanía": 9,
+    "Los Ríos": 14,
+    "Los Lagos": 10,
+    "Aysén": 11,
+    "Magallanes": 12
   };
 
   // Función para manejar cambios en el formulario de registro
@@ -122,41 +147,208 @@ export function Registro() {
       if (window.M) {
         window.M.FormSelect.init(document.querySelectorAll('select'));
         window.M.updateTextFields();
-
-        // Reinicializar datepicker
-        const datepicker = document.getElementById('birthdate');
-        if (datepicker) {
-          const instance = window.M.Datepicker.getInstance(datepicker);
-          if (instance) {
-            instance.destroy();
-          }
-          window.M.Datepicker.init(datepicker, {
-            format: 'dd/mm/yyyy',
-            yearRange: [1950, new Date().getFullYear()],
-            i18n: {
-              months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-              monthsShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-              weekdays: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
-              weekdaysShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
-              weekdaysAbbrev: ['D', 'L', 'M', 'M', 'J', 'V', 'S']
-            }
-          });
-        }
       }
     }, 100);
 
   };
 
   // Función para manejar el registro
-  const handleRegistro = (e) => {
+  const handleRegistro = async (e) => {
     e.preventDefault();
-    // Aquí iría la lógica de registro
+    
+    // Validar el formulario con Parsley
+    if (window.$ && window.Parsley && registroFormRef.current) {
+      const form = window.$(registroFormRef.current);
+      if (form.parsley() && !form.parsley().isValid()) {
+        form.parsley().validate();
+        return;
+      }
+    }
+
+    try {
+      // Validar que la fecha de nacimiento no esté vacía
+      if (!formData.birthdate || formData.birthdate.trim() === '') {
+        if (window.M) {
+          window.M.toast({ 
+            html: 'Debes seleccionar tu fecha de nacimiento.', 
+            classes: 'red',
+            displayLength: 4000
+          });
+        } else {
+          alert('Debes seleccionar tu fecha de nacimiento.');
+        }
+        return;
+      }
+
+      // Extraer RUT y DV
+      const rutCompleto = formData.rut;
+      const rut = rutCompleto.slice(0, -1); // Todos los dígitos excepto el último
+      const dv = rutCompleto.slice(-1).toUpperCase(); // Último carácter (puede ser número o K)
+
+      // Convertir fecha - el input type="date" ya devuelve formato yyyy-mm-dd
+      const fechaNacimiento = formData.birthdate;
+      
+      // Validar que la fecha exista
+      if (!fechaNacimiento || fechaNacimiento.trim() === '') {
+        if (window.M) {
+          window.M.toast({ 
+            html: 'Debes seleccionar tu fecha de nacimiento.', 
+            classes: 'red',
+            displayLength: 4000
+          });
+        } else {
+          alert('Debes seleccionar tu fecha de nacimiento.');
+        }
+        return;
+      }
+
+      // Obtener ID de región
+      const idRegion = regionesIds[formData.region] || 13;
+
+      // Construir el body para la API
+      const body = {
+        nombre: formData.firstName,
+        sNombre: "", // Segundo nombre vacío según especificación
+        aPaterno: formData.lastName,
+        aMaterno: formData.apellidoMaterno,
+        rut: rut,
+        dv: dv,
+        fechaNacimiento: fechaNacimiento,
+        idRegion: idRegion,
+        direccion: formData.address,
+        email: formData.email,
+        telefono: "+56912345678", // Teléfono por defecto
+        passwordHashed: formData.password
+      };
+
+      console.log('Body enviado:', body);
+
+      // Realizar la petición POST
+      const response = await axios.post(
+        '/api/v1/usuarios',
+        body
+      );
+
+      // Si la petición fue exitosa
+      if (response.status === 200 || response.status === 201) {
+        if (window.M) {
+          window.M.toast({ 
+            html: '¡Usuario registrado exitosamente!', 
+            classes: 'green' 
+          });
+        } else {
+          alert('¡Usuario registrado exitosamente!');
+        }
+        
+        // Limpiar el formulario
+        limpiarFormulario();
+      }
+
+    } catch (error) {
+      console.error('Error al registrar usuario:', error);
+      console.error('Respuesta del servidor:', error.response?.data);
+      
+      let mensajeError = 'Error al registrar usuario. Por favor, intenta nuevamente.';
+      
+      if (error.response) {
+        // El servidor respondió con un código de estado fuera del rango 2xx
+        console.log('Detalles del error:', error.response.data);
+        mensajeError = error.response.data?.message || error.response.data?.error || JSON.stringify(error.response.data) || mensajeError;
+      } else if (error.request) {
+        // La petición se hizo pero no hubo respuesta
+        mensajeError = 'No se pudo conectar con el servidor. Verifica tu conexión.';
+      }
+      
+      if (window.M) {
+        window.M.toast({ 
+          html: mensajeError, 
+          classes: 'red',
+          displayLength: 6000
+        });
+      } else {
+        alert(mensajeError);
+      }
+    }
   };
 
   // Función para manejar el login
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Aquí iría la lógica de login
+    
+    // Validar el formulario con Parsley
+    if (window.$ && window.Parsley && loginFormRef.current) {
+      const form = window.$(loginFormRef.current);
+      if (form.parsley() && !form.parsley().isValid()) {
+        form.parsley().validate();
+        return;
+      }
+    }
+
+    try {
+      // Construir el body para la autenticación
+      const body = {
+        email: loginData.email,
+        password: loginData.password
+      };
+
+      console.log('Intentando login con:', { email: loginData.email });
+
+      // Realizar la petición POST
+      const response = await axios.post(
+        '/api/v1/usuarios/authenticate',
+        body
+      );
+
+      // Si la petición fue exitosa
+      if (response.status === 200 && response.data) {
+        const userData = {
+          idUsuario: response.data.idUsuario,
+          email: response.data.email,
+          rol: response.data.rol,
+          apaterno: response.data.apaterno,
+          pnombre: response.data.pnombre
+        };
+
+        // Guardar el usuario y token usando el contexto
+        login(userData, response.data.token);
+
+        if (window.M) {
+          window.M.toast({ 
+            html: `¡Bienvenido, ${userData.pnombre}!`, 
+            classes: 'green',
+            displayLength: 3000
+          });
+        } else {
+          alert(`¡Bienvenido, ${userData.pnombre}!`);
+        }
+      }
+
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error);
+      console.error('Respuesta del servidor:', error.response?.data);
+      
+      let mensajeError = 'Error al iniciar sesión. Por favor, verifica tus credenciales.';
+      
+      if (error.response) {
+        if (error.response.status === 401) {
+          mensajeError = 'Email o contraseña incorrectos.';
+        } else {
+          mensajeError = error.response.data?.message || error.response.data?.error || mensajeError;
+        }
+      } else if (error.request) {
+        mensajeError = 'No se pudo conectar con el servidor. Verifica tu conexión.';
+      }
+      
+      if (window.M) {
+        window.M.toast({ 
+          html: mensajeError, 
+          classes: 'red',
+          displayLength: 6000
+        });
+      } else {
+        alert(mensajeError);
+      }
+    }
   };
 
   useEffect(() => {
@@ -208,17 +400,6 @@ export function Registro() {
         // Inicializar Materialize
         if (window.M) {
           window.M.FormSelect.init(document.querySelectorAll('select'));
-          window.M.Datepicker.init(document.querySelectorAll('.datepicker'), {
-            format: 'dd/mm/yyyy',
-            yearRange: [1950, new Date().getFullYear()],
-            i18n: {
-              months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-              monthsShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-              weekdays: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
-              weekdaysShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
-              weekdaysAbbrev: ['D', 'L', 'M', 'M', 'J', 'V', 'S']
-            }
-          });
           window.M.updateTextFields();
         }
 
@@ -262,10 +443,31 @@ export function Registro() {
       delete window.limpiar;
       delete window.registrar;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Si el usuario está autenticado, mostrar el perfil
+  if (user) {
+    return <PerfilUsuario />;
+  }
 
   return (
     <>
+      <style>
+        {`
+          /* Deshabilitar el datepicker de Materialize */
+          .datepicker-modal,
+          .datepicker-date-display,
+          .datepicker-calendar-container {
+            display: none !important;
+          }
+          
+          /* Asegurar que el input date nativo funcione correctamente */
+          input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+          }
+        `}
+      </style>
       <Header />
       <main data-testid="registro">
         <div className="container" style={{ marginTop: "30px" }}>
@@ -445,13 +647,16 @@ export function Registro() {
 
                     <div className="input-field col s12">
                       <input
-                        type="text"
-                        className="datepicker"
+                        type="date"
                         id="birthdate"
                         name="birthdate"
+                        required
                         value={formData.birthdate}
-                        onChange={handleRegistroChange} />
-                      <label htmlFor="birthdate">Fecha de nacimiento</label>
+                        onChange={handleRegistroChange}
+                        max={new Date().toISOString().split('T')[0]}
+                        min="1900-01-01"
+                        data-parsley-required-message="Debes seleccionar tu fecha de nacimiento." />
+                      <label htmlFor="birthdate" className="active">Fecha de nacimiento</label>
                     </div>
 
                     <div className="input-field col s12">

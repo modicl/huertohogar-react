@@ -5,12 +5,15 @@ import { Header } from './components/Header'
 import { Footer } from './components/Footer'
 import './index.css'
 import { App } from './App.jsx'
+import { AuthProvider } from './context/AuthContext.jsx'
 
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </AuthProvider>
   </StrictMode>,
 )

@@ -10,6 +10,30 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    proxy: {
+      '/api/v1/usuarios': {
+        target: 'https://hh-usuario-backend-efp2p.ondigitalocean.app',
+        changeOrigin: true,
+        secure: true,
+      },
+      '/api/v1/productos': {
+        target: 'https://hh-productos-backend-xcijd.ondigitalocean.app',
+        changeOrigin: true,
+        secure: true,
+      },
+      '/api/v1/categorias': {
+        target: 'https://hh-productos-backend-xcijd.ondigitalocean.app',
+        changeOrigin: true,
+        secure: true,
+      },
+      '/api/v1/paises': {
+        target: 'https://hh-productos-backend-xcijd.ondigitalocean.app',
+        changeOrigin: true,
+        secure: true,
+      }
+    }
+  },
   test: {
     coverage: {
       provider: 'v8',

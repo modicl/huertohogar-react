@@ -1,33 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { productos as productosIniciales } from '../../data/productos.jsx';
+import axios from 'axios';
 import './AdminDashboard.css';
 
 export function Productos() {
   const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [paises, setPaises] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    id: '',
-    nombre: '',
-    categoria: '',
-    descripcion: '',
-    precio: '',
-    stock: '',
-    origen: '',
-    imagen: ''
+    nombreProducto: '',
+    idCategoria: '',
+    descripcionProducto: '',
+    precioProducto: '',
+    stockProducto: '',
+    idPais: '',
+    imagenUrl: ''
   });
 
-  // Cargar productos al iniciar
+  // Cargar productos, categorías y países al iniciar
   useEffect(() => {
-    const storedProducts = localStorage.getItem('productos');
-    if (storedProducts) {
-      setProductos(JSON.parse(storedProducts));
-    } else {
-      setProductos(productosIniciales);
-      localStorage.setItem('productos', JSON.stringify(productosIniciales));
-    }
+    fetchProductos();
+    fetchCategorias();
+    fetchPaises();
   }, []);
 
-  // Inicializar Materialize Modal
+  // Obtener categorías del backend
+  const fetchCategorias = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/v1/categorias', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      setCategorias(response.data);
+    } catch (error) {
+      console.error('Error al obtener categorías:', error);
+      // Fallback a categorías de ejemplo si falla
+      setCategorias([
+        { idCategoria: 1, nombreCategoria: 'Verduras' },
+        { idCategoria: 2, nombreCategoria: 'Frutas' },
+        { idCategoria: 3, nombreCategoria: 'Hortalizas' }
+      ]);
+    }
+  };
+
+  // Obtener países del backend
+  const fetchPaises = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/v1/paises', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      setPaises(response.data);
+    } catch (error) {
+      console.error('Error al obtener países:', error);
+      // Fallback a países de ejemplo si falla
+      setPaises([
+        { idPais: 1, nombre: 'Chile' },
+        { idPais: 2, nombre: 'Argentina' },
+        { idPais: 3, nombre: 'Perú' }
+      ]);
+    }
+  };
+
+  // Inicializar Materialize Modal y Select
   useEffect(() => {
     if (window.M) {
       const modals = document.querySelectorAll('.modal');
@@ -35,45 +75,105 @@ export function Productos() {
     }
   }, []);
 
+  // Reinicializar selects cuando cambia formData
+  useEffect(() => {
+    if (window.M) {
+      const selects = document.querySelectorAll('select');
+      window.M.FormSelect.init(selects);
+    }
+  }, [formData]);
+
+  // Obtener productos del backend
+  const fetchProductos = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/v1/productos', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      setProductos(response.data);
+    } catch (error) {
+      console.error('Error al obtener productos:', error);
+      if (window.M) {
+        window.M.toast({
+          html: 'Error al cargar productos',
+          classes: 'red'
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Resetear formulario
   const resetForm = () => {
     setFormData({
-      id: '',
-      nombre: '',
-      categoria: '',
-      descripcion: '',
-      precio: '',
-      stock: '',
-      origen: '',
-      imagen: ''
+      nombreProducto: '',
+      idCategoria: '',
+      descripcionProducto: '',
+      precioProducto: '',
+      stockProducto: '',
+      idPais: '',
+      imagenUrl: ''
     });
     setEditingProduct(null);
+    
+    // Reinicializar los selects de Materialize
+    setTimeout(() => {
+      if (window.M) {
+        const selects = document.querySelectorAll('select');
+        window.M.FormSelect.init(selects);
+      }
+    }, 100);
   };
 
   // Abrir modal para crear
   const handleCreate = () => {
     resetForm();
-    const modal = document.getElementById('productModal');
-    const instance = window.M.Modal.getInstance(modal);
-    if (instance) instance.open();
+    setTimeout(() => {
+      const modal = document.getElementById('productModal');
+      if (modal) {
+        let instance = window.M.Modal.getInstance(modal);
+        if (!instance) {
+          instance = window.M.Modal.init(modal);
+        }
+        instance.open();
+      }
+    }, 100);
   };
 
   // Abrir modal para editar
   const handleEdit = (producto) => {
     setEditingProduct(producto);
     setFormData({
-      id: producto.id,
-      nombre: producto.nombre,
-      categoria: producto.categoria,
-      descripcion: producto.descripcion,
-      precio: producto.precio,
-      stock: producto.stock,
-      origen: producto.origen || '',
-      imagen: producto.imagen || ''
+      nombreProducto: producto.nombreProducto,
+      idCategoria: producto.categoria?.idCategoria || '',
+      descripcionProducto: producto.descripcionProducto || '',
+      precioProducto: producto.precioProducto,
+      stockProducto: producto.stockProducto,
+      idPais: producto.paisOrigen?.idPais || '',
+      imagenUrl: producto.imagenUrl || ''
     });
-    const modal = document.getElementById('productModal');
-    const instance = window.M.Modal.getInstance(modal);
-    if (instance) instance.open();
+    
+    // Abrir modal y reinicializar componentes de Materialize
+    setTimeout(() => {
+      if (window.M) {
+        const selects = document.querySelectorAll('select');
+        window.M.FormSelect.init(selects);
+        window.M.updateTextFields();
+        
+        const modal = document.getElementById('productModal');
+        if (modal) {
+          let instance = window.M.Modal.getInstance(modal);
+          if (!instance) {
+            instance = window.M.Modal.init(modal);
+          }
+          instance.open();
+        }
+      }
+    }, 100);
   };
 
   // Manejar cambios en el formulario
@@ -86,57 +186,116 @@ export function Productos() {
   };
 
   // Guardar producto (crear o editar)
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validaciones
-    if (!formData.nombre || !formData.categoria || !formData.precio || !formData.stock) {
-      alert('Por favor completa todos los campos obligatorios (nombre, categoría, precio, stock)');
+    if (!formData.nombreProducto || !formData.idCategoria || !formData.precioProducto || !formData.stockProducto) {
+      if (window.M) {
+        window.M.toast({
+          html: 'Por favor completa todos los campos obligatorios',
+          classes: 'red'
+        });
+      }
       return;
     }
 
-    const productoData = {
-      id: editingProduct ? formData.id : Date.now(),
-      nombre: formData.nombre,
-      categoria: formData.categoria,
-      descripcion: formData.descripcion,
-      precio: parseInt(formData.precio),
-      stock: parseInt(formData.stock),
-      origen: formData.origen || 'Chile',
-      imagen: formData.imagen || ''
-    };
+    setLoading(true);
 
-    let updatedProducts;
-    if (editingProduct) {
-      // Actualizar producto existente
-      updatedProducts = productos.map(p => 
-        p.id === formData.id ? productoData : p
-      );
-      alert('Producto actualizado exitosamente');
-    } else {
-      // Crear nuevo producto
-      updatedProducts = [...productos, productoData];
-      alert('Producto creado exitosamente');
+    try {
+      const productoData = {
+        nombreProducto: formData.nombreProducto,
+        categoria: {
+          idCategoria: parseInt(formData.idCategoria)
+        },
+        descripcionProducto: formData.descripcionProducto,
+        precioProducto: parseInt(formData.precioProducto),
+        stockProducto: parseInt(formData.stockProducto),
+        paisOrigen: {
+          idPais: parseInt(formData.idPais) || 1
+        },
+        imagenUrl: formData.imagenUrl || ''
+      };
+
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      };
+
+      if (editingProduct) {
+        // Actualizar producto existente (PATCH)
+        await axios.patch(`/api/v1/productos/${editingProduct.idProducto}`, productoData, config);
+        if (window.M) {
+          window.M.toast({
+            html: 'Producto actualizado exitosamente',
+            classes: 'green'
+          });
+        }
+      } else {
+        // Crear nuevo producto (POST)
+        await axios.post('/api/v1/productos', productoData, config);
+        if (window.M) {
+          window.M.toast({
+            html: 'Producto creado exitosamente',
+            classes: 'green'
+          });
+        }
+      }
+
+      // Recargar productos
+      await fetchProductos();
+      
+      // Cerrar modal
+      const modal = document.getElementById('productModal');
+      const instance = window.M.Modal.getInstance(modal);
+      if (instance) instance.close();
+      
+      resetForm();
+    } catch (error) {
+      console.error('Error al guardar producto:', error);
+      if (window.M) {
+        window.M.toast({
+          html: error.response?.data?.message || 'Error al guardar el producto',
+          classes: 'red',
+          displayLength: 6000
+        });
+      }
+    } finally {
+      setLoading(false);
     }
-
-    setProductos(updatedProducts);
-    localStorage.setItem('productos', JSON.stringify(updatedProducts));
-    
-    // Cerrar modal
-    const modal = document.getElementById('productModal');
-    const instance = window.M.Modal.getInstance(modal);
-    if (instance) instance.close();
-    
-    resetForm();
   };
 
   // Eliminar producto
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('¿Estás seguro de eliminar este producto?')) {
-      const updatedProducts = productos.filter(p => p.id !== id);
-      setProductos(updatedProducts);
-      localStorage.setItem('productos', JSON.stringify(updatedProducts));
-      alert('Producto eliminado exitosamente');
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        await axios.delete(`/api/v1/productos/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (window.M) {
+          window.M.toast({
+            html: 'Producto eliminado exitosamente',
+            classes: 'green'
+          });
+        }
+        await fetchProductos();
+      } catch (error) {
+        console.error('Error al eliminar producto:', error);
+        if (window.M) {
+          window.M.toast({
+            html: error.response?.data?.message || 'Error al eliminar el producto',
+            classes: 'red'
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -201,7 +360,7 @@ export function Productos() {
             </div>
             <div className="stat-content">
               <p className="stat-label">Stock Total</p>
-              <h5 className="stat-value">{productos.reduce((sum, p) => sum + p.stock, 0)}</h5>
+              <h5 className="stat-value">{productos.reduce((sum, p) => sum + (p.stockProducto || 0), 0)}</h5>
             </div>
           </div>
         </div>
@@ -212,7 +371,7 @@ export function Productos() {
             </div>
             <div className="stat-content">
               <p className="stat-label">Categorías</p>
-              <h5 className="stat-value">{new Set(productos.map(p => p.categoria)).size}</h5>
+              <h5 className="stat-value">{new Set(productos.map(p => p.categoria?.nombreCategoria)).size}</h5>
             </div>
           </div>
         </div>
@@ -223,7 +382,7 @@ export function Productos() {
             </div>
             <div className="stat-content">
               <p className="stat-label">Valor Inventario</p>
-              <h5 className="stat-value">${(productos.reduce((sum, p) => sum + (p.precio * p.stock), 0) / 1000).toFixed(0)}K</h5>
+              <h5 className="stat-value">${(productos.reduce((sum, p) => sum + ((p.precioProducto || 0) * (p.stockProducto || 0)), 0) / 1000).toFixed(0)}K</h5>
             </div>
           </div>
         </div>
@@ -263,43 +422,43 @@ export function Productos() {
                 </tr>
               ) : (
                 productos.map(producto => (
-                  <tr key={producto.id}>
-                    <td style={{ padding: '15px' }}>{producto.id}</td>
+                  <tr key={producto.idProducto}>
+                    <td style={{ padding: '15px' }}>{producto.idProducto}</td>
                     <td>
-                      {producto.imagen && (
+                      {producto.imagenUrl && (
                         <img 
-                          src={producto.imagen} 
-                          alt={producto.nombre}
+                          src={producto.imagenUrl} 
+                          alt={producto.nombreProducto}
                           style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '6px' }}
                         />
                       )}
                     </td>
                     <td>
-                      <strong>{producto.nombre}</strong>
+                      <strong>{producto.nombreProducto}</strong>
                       <br />
-                      <small style={{ color: '#999' }}>{producto.descripcion}</small>
+                      <small style={{ color: '#999' }}>{producto.descripcionProducto}</small>
                     </td>
                     <td>
                       <span className="badge-status badge-success" style={{
                         background: '#e8f5e9',
                         color: '#27ae60'
                       }}>
-                        {producto.categoria}
+                        {producto.categoria?.nombreCategoria || 'N/A'}
                       </span>
                     </td>
                     <td className="font-medium" style={{ color: '#2c3e50' }}>
-                      ${producto.precio.toLocaleString('es-CL')}
+                      ${producto.precioProducto?.toLocaleString('es-CL')}
                     </td>
                     <td>
                       <span className={
-                        producto.stock > 20 ? 'badge-status badge-success' : 
-                        producto.stock > 10 ? 'badge-status badge-warning' : 
+                        producto.stockProducto > 20 ? 'badge-status badge-success' : 
+                        producto.stockProducto > 10 ? 'badge-status badge-warning' : 
                         'badge-status badge-danger'
                       }>
-                        {producto.stock} unid.
+                        {producto.stockProducto} unid.
                       </span>
                     </td>
-                    <td style={{ color: '#7f8c8d' }}>{producto.origen || 'N/A'}</td>
+                    <td style={{ color: '#7f8c8d' }}>{producto.paisOrigen?.nombre || producto.paisOrigen?.nombrePais || 'N/A'}</td>
                     <td style={{ textAlign: 'center' }}>
                       <button
                         onClick={() => handleEdit(producto)}
@@ -309,7 +468,7 @@ export function Productos() {
                         <i className="material-icons" style={{ color: '#3498db' }}>edit</i>
                       </button>
                       <button
-                        onClick={() => handleDelete(producto.id)}
+                        onClick={() => handleDelete(producto.idProducto)}
                         className="btn-small btn-flat waves-effect"
                       >
                         <i className="material-icons" style={{ color: '#e74c3c' }}>delete</i>
@@ -341,14 +500,14 @@ export function Productos() {
               <div className="input-field col s12 m6">
                 <i className="material-icons prefix" style={{ color: '#2E8B57' }}>shopping_basket</i>
                 <input
-                  id="nombre"
-                  name="nombre"
+                  id="nombreProducto"
+                  name="nombreProducto"
                   type="text"
-                  value={formData.nombre}
+                  value={formData.nombreProducto}
                   onChange={handleInputChange}
                   required
                 />
-                <label htmlFor="nombre" className={formData.nombre ? 'active' : ''}>
+                <label htmlFor="nombreProducto" className={formData.nombreProducto ? 'active' : ''}>
                   Nombre del Producto *
                 </label>
               </div>
@@ -356,33 +515,36 @@ export function Productos() {
               {/* Categoría */}
               <div className="input-field col s12 m6">
                 <i className="material-icons prefix" style={{ color: '#2E8B57' }}>category</i>
-                <input
-                  id="categoria"
-                  name="categoria"
-                  type="text"
-                  value={formData.categoria}
+                <select
+                  id="idCategoria"
+                  name="idCategoria"
+                  value={formData.idCategoria}
                   onChange={handleInputChange}
-                  placeholder="Ej: Frutas, Verduras, Lacteos"
                   required
-                />
-                <label htmlFor="categoria" className={formData.categoria ? 'active' : ''}>
-                  Categoría *
-                </label>
+                >
+                  <option value="" disabled>Selecciona una categoría</option>
+                  {categorias.map(cat => (
+                    <option key={cat.idCategoria} value={cat.idCategoria}>
+                      {cat.nombreCategoria}
+                    </option>
+                  ))}
+                </select>
+                <label htmlFor="idCategoria">Categoría *</label>
               </div>
 
               {/* Precio */}
               <div className="input-field col s12 m6">
                 <i className="material-icons prefix" style={{ color: '#2E8B57' }}>attach_money</i>
                 <input
-                  id="precio"
-                  name="precio"
+                  id="precioProducto"
+                  name="precioProducto"
                   type="number"
                   min="0"
-                  value={formData.precio}
+                  value={formData.precioProducto}
                   onChange={handleInputChange}
                   required
                 />
-                <label htmlFor="precio" className={formData.precio ? 'active' : ''}>
+                <label htmlFor="precioProducto" className={formData.precioProducto ? 'active' : ''}>
                   Precio (CLP) *
                 </label>
               </div>
@@ -391,15 +553,15 @@ export function Productos() {
               <div className="input-field col s12 m6">
                 <i className="material-icons prefix" style={{ color: '#2E8B57' }}>inventory</i>
                 <input
-                  id="stock"
-                  name="stock"
+                  id="stockProducto"
+                  name="stockProducto"
                   type="number"
                   min="0"
-                  value={formData.stock}
+                  value={formData.stockProducto}
                   onChange={handleInputChange}
                   required
                 />
-                <label htmlFor="stock" className={formData.stock ? 'active' : ''}>
+                <label htmlFor="stockProducto" className={formData.stockProducto ? 'active' : ''}>
                   Stock Disponible *
                 </label>
               </div>
@@ -407,31 +569,34 @@ export function Productos() {
               {/* Origen */}
               <div className="input-field col s12 m6">
                 <i className="material-icons prefix" style={{ color: '#2E8B57' }}>place</i>
-                <input
-                  id="origen"
-                  name="origen"
-                  type="text"
-                  value={formData.origen}
+                <select
+                  id="idPais"
+                  name="idPais"
+                  value={formData.idPais}
                   onChange={handleInputChange}
-                  placeholder="Chile"
-                />
-                <label htmlFor="origen" className={formData.origen ? 'active' : ''}>
-                  Origen
-                </label>
+                >
+                  <option value="">Sin especificar</option>
+                  {paises.map(pais => (
+                    <option key={pais.idPais} value={pais.idPais}>
+                      {pais.nombre || pais.nombrePais}
+                    </option>
+                  ))}
+                </select>
+                <label htmlFor="idPais">País de Origen</label>
               </div>
 
               {/* Descripción */}
               <div className="input-field col s12">
                 <i className="material-icons prefix" style={{ color: '#2E8B57' }}>description</i>
                 <textarea
-                  id="descripcion"
-                  name="descripcion"
+                  id="descripcionProducto"
+                  name="descripcionProducto"
                   className="materialize-textarea"
-                  value={formData.descripcion}
+                  value={formData.descripcionProducto}
                   onChange={handleInputChange}
                   style={{ minHeight: '80px' }}
                 />
-                <label htmlFor="descripcion" className={formData.descripcion ? 'active' : ''}>
+                <label htmlFor="descripcionProducto" className={formData.descripcionProducto ? 'active' : ''}>
                   Descripción del Producto
                 </label>
               </div>
@@ -440,14 +605,14 @@ export function Productos() {
               <div className="input-field col s12">
                 <i className="material-icons prefix" style={{ color: '#2E8B57' }}>image</i>
                 <input
-                  id="imagen"
-                  name="imagen"
+                  id="imagenUrl"
+                  name="imagenUrl"
                   type="text"
-                  value={formData.imagen}
+                  value={formData.imagenUrl}
                   onChange={handleInputChange}
                   placeholder="URL de la imagen o ruta relativa"
                 />
-                <label htmlFor="imagen" className={formData.imagen ? 'active' : ''}>
+                <label htmlFor="imagenUrl" className={formData.imagenUrl ? 'active' : ''}>
                   URL de Imagen
                 </label>
                 <span className="helper-text">
@@ -456,11 +621,11 @@ export function Productos() {
               </div>
 
               {/* Preview de imagen */}
-              {formData.imagen && (
+              {formData.imagenUrl && (
                 <div className="col s12" style={{ marginTop: '10px', marginBottom: '20px' }}>
                   <p style={{ fontSize: '0.9em', color: '#666', marginBottom: '10px' }}>Vista previa:</p>
                   <img 
-                    src={formData.imagen} 
+                    src={formData.imagenUrl} 
                     alt="Preview"
                     style={{ 
                       maxWidth: '200px', 
