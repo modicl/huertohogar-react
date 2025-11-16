@@ -1,10 +1,12 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import './AdminLayout.css';
 
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
   
   // Inicializar el sidenav de Materialize
   useEffect(() => {
@@ -15,7 +17,8 @@ export function AdminLayout() {
   }, []);
   
   const handleLogout = () => {
-    localStorage.removeItem('adminToken');
+    // Usar la función logout del contexto que elimina user y token
+    logout();
     navigate('/admin/login');
   };
   

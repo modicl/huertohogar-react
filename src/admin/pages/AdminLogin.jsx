@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+import { API_URLS } from '../../config/api.js';
 import './AdminLogin.css';
 
 export function AdminLogin() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [credentials, setCredentials] = useState({
     email: '',
     password: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,19 +23,89 @@ export function AdminLogin() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     
-    // Validación simple (en producción, esto sería contra una API)
-    if (credentials.email === 'admin@huertohogar.com' && credentials.password === 'admin123') {
-      // Guardar token de autenticación
-      localStorage.setItem('adminToken', 'token-admin-123');
-      localStorage.setItem('adminEmail', credentials.email);
+    try {
+      // Construir el body para la autenticación
+      const body = {
+        email: credentials.email,
+        password: credentials.password
+      };
+
+      console.log('Intentando login de admin con:', { email: credentials.email });
+
+      // Realizar la petición POST al endpoint de autenticación
+      const response = await axios.post(
+        API_URLS.usuarios.authenticate,
+        body,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      // Verificar que la autenticación fue exitosa
+      if (response.status === 200 && response.data) {
+        // VALIDAR QUE EL ROL SEA ADMIN
+        if (response.data.rol !== 'ADMIN') {
+          setError('Acceso denegado. No tienes permisos de administrador.');
+          setLoading(false);
+          return;
+        }
+
+        // Si el rol es ADMIN, proceder con el login
+        const userData = {
+          idUsuario: response.data.idUsuario,
+          nombre: response.data.nombre,
+          sNombre: response.data.sNombre,
+          aPaterno: response.data.aPaterno,
+          aMaterno: response.data.aMaterno,
+          rut: response.data.rut,
+          dv: response.data.dv,
+          fechaNacimiento: response.data.fechaNacimiento,
+          idRegion: response.data.idRegion,
+          direccion: response.data.direccion,
+          email: response.data.email,
+          telefono: response.data.telefono,
+          rol: response.data.rol,
+          // Mantener compatibilidad con código antiguo
+          pnombre: response.data.nombre,
+          apaterno: response.data.aPaterno
+        };
+
+        // Guardar el usuario y token usando el contexto
+        login(userData, response.data.token);
+
+        // Pequeño delay para asegurar que el contexto se actualice antes de navegar
+        setTimeout(() => {
+          navigate('/admin');
+        }, 100);
+      }
+
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error);
       
-      // Redirigir al dashboard
-      navigate('/admin');
-    } else {
-      setError('Credenciales incorrectas');
+      let mensajeError = 'Error al iniciar sesión. Por favor, verifica tus credenciales.';
+      
+      if (error.response) {
+        if (error.response.status === 401) {
+          mensajeError = 'Email o contraseña incorrectos.';
+        } else if (error.response.status === 403) {
+          mensajeError = 'Acceso denegado. No tienes permisos de administrador.';
+        } else {
+          mensajeError = error.response.data?.message || error.response.data?.error || mensajeError;
+        }
+      } else if (error.request) {
+        mensajeError = 'No se pudo conectar con el servidor. Verifica tu conexión.';
+      }
+      
+      setError(mensajeError);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,9 +152,14 @@ export function AdminLogin() {
             <label htmlFor="password">Contraseña</label>
           </div>
 
-          <button type="submit" className="btn waves-effect waves-light btn-large" style={{ backgroundColor: '#2E8B57', width: '100%' }}>
-            <i className="material-icons left">login</i>
-            Iniciar Sesión
+          <button 
+            type="submit" 
+            className="btn waves-effect waves-light btn-large" 
+            style={{ backgroundColor: '#2E8B57', width: '100%' }}
+            disabled={loading}
+          >
+            <i className="material-icons left">{loading ? 'hourglass_empty' : 'login'}</i>
+            {loading ? 'Iniciando...' : 'Iniciar Sesión'}
           </button>
 
           <div className="admin-login-footer">
@@ -87,11 +167,6 @@ export function AdminLogin() {
               <a href="/" style={{ color: '#2E8B57' }}>
                 <i className="material-icons tiny">arrow_back</i> Volver al sitio
               </a>
-            </p>
-            <p className="grey-text text-lighten-1">
-              <small>Credenciales de prueba:<br />
-              Email: admin@huertohogar.com<br />
-              Password: admin123</small>
             </p>
           </div>
         </form>
