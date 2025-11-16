@@ -409,7 +409,7 @@ export function Productos() {
                     <th>Nombre</th>
                     <th>Categoría</th>
                     <th>Precio</th>
-                    <th>Stock</th>
+                    <th style={{ 'width' : '120px'}}>Stock</th>
                     <th>Origen</th>
                     <th style={{ textAlign: 'center' }}>Acciones</th>
                   </tr>
