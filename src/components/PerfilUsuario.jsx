@@ -122,13 +122,13 @@ export function PerfilUsuario() {
               {vistaActual === 'resumen' && (
                 <div className="card-panel" style={{ borderRadius: '15px', padding: '30px' }}>
                   <h4 style={{ fontFamily: "'Playfair Display', serif", color: "#8B4513", marginBottom: '30px' }}>
-                    Bienvenido, {user.pnombre}!
+                    Bienvenido, {user.nombre || user.pnombre}!
                   </h4>
                   
                   <div className="row">
                     <div className="col s12">
                       <h6 style={{ color: '#666', marginBottom: '20px', fontSize: '18px' }}>
-                        Información de tu cuenta
+                        Información Personal
                       </h6>
                     </div>
                   </div>
@@ -136,14 +136,59 @@ export function PerfilUsuario() {
                   <div className="row">
                     <div className="col s12 m6">
                       <div style={{ marginBottom: '15px' }}>
-                        <strong style={{ color: '#8B4513' }}>Nombre:</strong>
-                        <p style={{ margin: '5px 0', fontSize: '16px' }}>{user.pnombre} {user.apaterno}</p>
+                        <strong style={{ color: '#8B4513' }}>Nombre Completo:</strong>
+                        <p style={{ margin: '5px 0', fontSize: '16px' }}>
+                          {user.nombre || user.pnombre} {user.sNombre || ''} {user.aPaterno || user.apaterno} {user.aMaterno || user.amaterno || ''}
+                        </p>
                       </div>
                     </div>
                     <div className="col s12 m6">
                       <div style={{ marginBottom: '15px' }}>
                         <strong style={{ color: '#8B4513' }}>Email:</strong>
                         <p style={{ margin: '5px 0', fontSize: '16px' }}>{user.email}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="row">
+                    <div className="col s12 m6">
+                      <div style={{ marginBottom: '15px' }}>
+                        <strong style={{ color: '#8B4513' }}>RUT:</strong>
+                        <p style={{ margin: '5px 0', fontSize: '16px' }}>
+                          {user.rut}-{user.dv}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="col s12 m6">
+                      <div style={{ marginBottom: '15px' }}>
+                        <strong style={{ color: '#8B4513' }}>Fecha de Nacimiento:</strong>
+                        <p style={{ margin: '5px 0', fontSize: '16px' }}>
+                          {user.fechaNacimiento ? new Date(user.fechaNacimiento).toLocaleDateString('es-CL') : 'No disponible'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="row">
+                    <div className="col s12 m6">
+                      <div style={{ marginBottom: '15px' }}>
+                        <strong style={{ color: '#8B4513' }}>Teléfono:</strong>
+                        <p style={{ margin: '5px 0', fontSize: '16px' }}>{user.telefono || 'No disponible'}</p>
+                      </div>
+                    </div>
+                    <div className="col s12 m6">
+                      <div style={{ marginBottom: '15px' }}>
+                        <strong style={{ color: '#8B4513' }}>Región:</strong>
+                        <p style={{ margin: '5px 0', fontSize: '16px' }}>Región {user.idRegion}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="row">
+                    <div className="col s12">
+                      <div style={{ marginBottom: '15px' }}>
+                        <strong style={{ color: '#8B4513' }}>Dirección:</strong>
+                        <p style={{ margin: '5px 0', fontSize: '16px' }}>{user.direccion || 'No disponible'}</p>
                       </div>
                     </div>
                   </div>

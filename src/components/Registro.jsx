@@ -227,7 +227,12 @@ export function Registro() {
       // Realizar la petición POST
       const response = await axios.post(
         API_URLS.usuarios.base,
-        body
+        body,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
       // Si la petición fue exitosa
@@ -297,17 +302,33 @@ export function Registro() {
       // Realizar la petición POST
       const response = await axios.post(
         API_URLS.usuarios.authenticate,
-        body
+        body,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
       // Si la petición fue exitosa
       if (response.status === 200 && response.data) {
         const userData = {
           idUsuario: response.data.idUsuario,
+          nombre: response.data.nombre,
+          sNombre: response.data.sNombre,
+          aPaterno: response.data.aPaterno,
+          aMaterno: response.data.aMaterno,
+          rut: response.data.rut,
+          dv: response.data.dv,
+          fechaNacimiento: response.data.fechaNacimiento,
+          idRegion: response.data.idRegion,
+          direccion: response.data.direccion,
           email: response.data.email,
+          telefono: response.data.telefono,
           rol: response.data.rol,
-          apaterno: response.data.apaterno,
-          pnombre: response.data.pnombre
+          // Mantener compatibilidad con código antiguo
+          pnombre: response.data.nombre,
+          apaterno: response.data.aPaterno
         };
 
         // Guardar el usuario y token usando el contexto
@@ -315,12 +336,12 @@ export function Registro() {
 
         if (window.M) {
           window.M.toast({ 
-            html: `¡Bienvenido, ${userData.pnombre}!`, 
+            html: `¡Bienvenido, ${userData.nombre || userData.pnombre}!`, 
             classes: 'green',
             displayLength: 3000
           });
         } else {
-          alert(`¡Bienvenido, ${userData.pnombre}!`);
+          alert(`¡Bienvenido, ${userData.nombre || userData.pnombre}!`);
         }
       }
 
