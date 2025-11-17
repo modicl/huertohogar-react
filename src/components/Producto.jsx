@@ -20,10 +20,127 @@ export function Producto() {
   // Estado para mostrar/ocultar filtros en móvil
   const [showFiltros, setShowFiltros] = useState(false);
 
-  // Obtener categorías únicas
-  const categorias = ['todas', ...new Set(productos.map(p => p.categoria))];
+  // ============================================
+  // EFECTOS - CARGA DE DATOS DESDE API
+  // ============================================
+  
+  /**
+   * Efecto principal: Carga inicial de productos y categorías
+   * Se ejecuta una sola vez al montar el componente
+   */
+  useEffect(() => {
+    fetchProductosYCategorias();
+  }, []);
 
-  // Función para actualizar cantidad de un producto
+  /**
+   * Función para cargar productos y categorías desde la API
+   * Utiliza Promise.all para hacer ambas peticiones en paralelo
+   */
+  const fetchProductosYCategorias = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('🔄 Cargando productos y categorías desde la API...');
+      
+      // Peticiones en paralelo para optimizar tiempo de carga
+      const [productosData, categoriasData] = await Promise.all([
+        productosService.getAll(),
+        categoriasService.getAll()
+      ]);
+      
+      console.log('✅ Productos cargados:', productosData.length);
+      console.log('✅ Categorías cargadas:', categoriasData.length);
+      
+      setProductos(productosData);
+      setCategorias(categoriasData);
+      
+      // Ajustar rango de precios basado en productos reales
+      if (productosData.length > 0) {
+        const precios = productosData.map(p => p.precio);
+        const maxPrecio = Math.max(...precios);
+        setFiltros(prev => ({
+          ...prev,
+          precioMax: Math.ceil(maxPrecio / 1000) * 1000 // Redondear al millar superior
+        }));
+      }
+      
+    } catch (error) {
+      console.error('❌ Error cargando datos:', error);
+      setError(
+        error.response?.status === 404 
+          ? 'No se encontraron productos' 
+          : 'Error al cargar productos. Por favor, intenta nuevamente.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Función para filtrar productos por categoría usando la API
+   * @param {number|null} categoriaId - ID de la categoría o null para todas
+   */
+  const filtrarPorCategoriaAPI = async (categoriaId) => {
+    if (!categoriaId) {
+      // Si es "todas", recargar todos los productos
+      await fetchProductosYCategorias();
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log(`🔄 Filtrando productos por categoría ${categoriaId}...`);
+      const productosData = await productosService.searchByCategory(categoriaId);
+      console.log('✅ Productos filtrados:', productosData.length);
+      setProductos(productosData);
+    } catch (error) {
+      console.error('❌ Error filtrando por categoría:', error);
+      setError('Error al filtrar productos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Función para filtrar productos por rango de precio usando la API
+   * @param {number} min - Precio mínimo
+   * @param {number} max - Precio máximo
+   */
+  const filtrarPorPrecioAPI = async (min, max) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log(`🔄 Filtrando productos por precio: $${min} - $${max}...`);
+      const productosData = await productosService.searchByPriceRange(min, max);
+      console.log('✅ Productos filtrados:', productosData.length);
+      setProductos(productosData);
+    } catch (error) {
+      console.error('❌ Error filtrando por precio:', error);
+      setError('Error al filtrar productos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ============================================
+  // FUNCIONES DE MANEJO DE EVENTOS
+  // ============================================
+
+  // Obtener categorías únicas
+
+  // ============================================
+  // FUNCIONES DE MANEJO DE EVENTOS
+  // ============================================
+
+  /**
+   * Actualiza la cantidad seleccionada para un producto
+   * @param {number} productId - ID del producto
+   * @param {string} value - Valor del input
+   */
   const handleQuantityChange = (productId, value) => {
     const newValue = parseInt(value) || 1;
     setQuantities(prev => ({
@@ -32,7 +149,12 @@ export function Producto() {
     }));
   };
 
-  // Función para agregar producto al carrito
+  /**
+   * Agrega un producto al carrito
+   * Guarda en localStorage y sincroniza con el estado global del carrito
+   * 
+   * @param {Object} producto - Objeto producto a agregar
+   */
   const addToCart = (producto) => {
     const quantity = quantities[producto.id] || 1;
     
@@ -45,19 +167,24 @@ export function Producto() {
     if (existingProductIndex >= 0) {
       // Si existe, actualizar cantidad
       currentCart[existingProductIndex].quantity += quantity;
+      console.log(`📦 Actualizado producto en carrito: ${producto.nombre} (${currentCart[existingProductIndex].quantity} unidades)`);
     } else {
       // Si no existe, agregar nuevo producto
       currentCart.push({
         ...producto,
         quantity: quantity
       });
+      console.log(`🛒 Agregado al carrito: ${producto.nombre} (${quantity} unidades)`);
     }
     
     // Guardar en localStorage
     localStorage.setItem('cartHuerto', JSON.stringify(currentCart));
     
+    // Disparar evento personalizado para que otros componentes se actualicen
+    window.dispatchEvent(new Event('cartUpdated'));
+    
     // Mostrar confirmación
-    alert(`Se agregaron ${quantity} unidad(es) de ${producto.nombre} al carrito`);
+    alert(`✅ Se agregaron ${quantity} unidad(es) de ${producto.nombre} al carrito`);
     
     // Resetear cantidad a 1
     setQuantities(prev => ({
@@ -66,15 +193,82 @@ export function Producto() {
     }));
   };
 
-  // Función para filtrar y ordenar productos
+  /**
+   * Maneja el cambio de categoría
+   * Puede usar filtrado de API o filtrado local según configuración
+   * 
+   * @param {string} categoriaId - ID de la categoría seleccionada
+   * @param {string} categoriaNombre - Nombre de la categoría para UI
+   */
+  const handleCategoriaChange = (categoriaId, categoriaNombre) => {
+    console.log('📂 Cambio de categoría:', categoriaNombre, categoriaId);
+    
+    setFiltros(prev => ({
+      ...prev,
+      categoriaId: categoriaId,
+      categoriaNombre: categoriaNombre,
+      usarAPI: !!categoriaId // Usar API si hay categoría seleccionada
+    }));
+    
+    // Opcional: Llamar directamente a la API para filtrar
+    // Comentar si prefieres filtrado local
+    if (categoriaId) {
+      filtrarPorCategoriaAPI(categoriaId);
+    } else {
+      fetchProductosYCategorias(); // Recargar todos
+    }
+  };
+
+  /**
+   * Aplica filtro de precio usando la API
+   * Se activa con un botón para evitar múltiples llamadas
+   */
+  const aplicarFiltroPrecio = () => {
+    console.log(`💰 Aplicando filtro de precio: $${filtros.precioMin} - $${filtros.precioMax}`);
+    filtrarPorPrecioAPI(filtros.precioMin, filtros.precioMax);
+  };
+
+  /**
+   * Resetea todos los filtros y recarga los productos
+   */
+  const resetFiltros = () => {
+    console.log('🔄 Reseteando filtros...');
+    
+    setFiltros({
+      categoriaId: null,
+      categoriaNombre: 'todas',
+      precioMin: 0,
+      precioMax: 50000,
+      ordenar: 'ninguno',
+      usarAPI: false
+    });
+    
+    // Recargar todos los productos
+    fetchProductosYCategorias();
+  };
+
+  // ============================================
+  // FILTRADO Y ORDENAMIENTO LOCAL
+  // ============================================
+  
+  /**
+   * Filtra y ordena productos localmente
+   * Este filtrado se aplica DESPUÉS de obtener datos de la API
+   * o cuando no se usan los filtros de API
+   */
   const productosFiltrados = productos
     .filter(producto => {
-      // Filtrar por categoría
-      if (filtros.categoria !== 'todas' && producto.categoria !== filtros.categoria) {
+      // Si se está usando API para filtrar, no filtrar localmente
+      if (filtros.usarAPI) {
+        return true;
+      }
+      
+      // Filtrar por categoría (solo si no se usa API)
+      if (filtros.categoriaId && producto.categoria?.id !== filtros.categoriaId) {
         return false;
       }
       
-      // Filtrar por precio
+      // Filtrar por precio (siempre aplicar filtro local adicional)
       if (producto.precio < filtros.precioMin || producto.precio > filtros.precioMax) {
         return false;
       }
@@ -98,18 +292,13 @@ export function Producto() {
     });
 
   // Log para debug
-  console.log('Filtros actuales:', filtros);
-  console.log('Productos filtrados:', productosFiltrados.length);
-
-  // Función para resetear filtros
-  const resetFiltros = () => {
-    setFiltros({
-      categoria: 'todas',
-      precioMin: 0,
-      precioMax: 10000,
-      ordenar: 'ninguno'
-    });
-  };
+  console.log('📊 Estado actual:', {
+    totalProductos: productos.length,
+    productosFiltrados: productosFiltrados.length,
+    filtrosActivos: filtros,
+    loading,
+    error
+  });
 
   return (
     <>
@@ -119,14 +308,86 @@ export function Producto() {
           Nuestra Tienda
         </h1>
 
-        {/* Botón para mostrar filtros en móvil */}
-        <div 
-          className="filtros-mobile-button"
-          style={{
-            display: 'none',
+        {/* ESTADO DE CARGA */}
+        {loading && (
+          <div style={{
+            textAlign: 'center',
+            padding: '60px 20px',
+            background: '#f8f8f8',
+            borderRadius: '12px',
             marginBottom: '20px'
-          }}
-        >
+          }}>
+            <div style={{
+              width: '50px',
+              height: '50px',
+              border: '4px solid #e0e0e0',
+              borderTop: '4px solid #2E8B57',
+              borderRadius: '50%',
+              margin: '0 auto 20px',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            <h3 style={{ color: '#2E8B57', marginBottom: '10px' }}>
+              Cargando productos...
+            </h3>
+            <p style={{ color: '#999' }}>
+              Obteniendo datos desde el servidor
+            </p>
+            <style>
+              {`
+                @keyframes spin {
+                  0% { transform: rotate(0deg); }
+                  100% { transform: rotate(360deg); }
+                }
+              `}
+            </style>
+          </div>
+        )}
+
+        {/* ESTADO DE ERROR */}
+        {error && !loading && (
+          <div style={{
+            textAlign: 'center',
+            padding: '40px 20px',
+            background: '#fee',
+            borderRadius: '12px',
+            marginBottom: '20px',
+            border: '2px solid #fcc'
+          }}>
+            <i className="material-icons" style={{ fontSize: '48px', color: '#c00', marginBottom: '16px' }}>
+              error_outline
+            </i>
+            <h3 style={{ color: '#c00', marginBottom: '10px' }}>
+              {error}
+            </h3>
+            <button
+              onClick={fetchProductosYCategorias}
+              style={{
+                padding: '10px 24px',
+                background: '#2E8B57',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                marginTop: '10px'
+              }}
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
+
+        {/* CONTENIDO PRINCIPAL - Solo mostrar si no hay error ni está cargando */}
+        {!loading && !error && (
+          <>
+            {/* Botón para mostrar filtros en móvil */}
+            <div 
+              className="filtros-mobile-button"
+              style={{
+                display: 'none',
+                marginBottom: '20px'
+              }}
+            >
           <button
             onClick={() => setShowFiltros(!showFiltros)}
             style={{
@@ -202,7 +463,7 @@ export function Producto() {
               </h3>
             </div>
 
-            {/* Filtro por Categoría */}
+            {/* Filtro por Categoría - INTEGRADO CON API */}
             <div style={{ marginBottom: '25px' }}>
               <label style={{
                 display: 'block',
@@ -217,29 +478,66 @@ export function Producto() {
                 Categoría
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {/* Opción "Todas" */}
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '10px 12px',
+                    background: filtros.categoriaNombre === 'todas' ? '#e8f5e9' : '#fff',
+                    border: `2px solid ${filtros.categoriaNombre === 'todas' ? '#2E8B57' : '#e0e0e0'}`,
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    fontSize: '0.95em',
+                    fontWeight: filtros.categoriaNombre === 'todas' ? '600' : '400',
+                    color: filtros.categoriaNombre === 'todas' ? '#2E8B57' : '#333'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (filtros.categoriaNombre !== 'todas') {
+                      e.currentTarget.style.background = '#f5f5f5';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (filtros.categoriaNombre !== 'todas') {
+                      e.currentTarget.style.background = '#fff';
+                    }
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="categoria"
+                    checked={filtros.categoriaNombre === 'todas'}
+                    onChange={() => handleCategoriaChange(null, 'todas')}
+                    style={{ marginRight: '10px', cursor: 'pointer' }}
+                  />
+                  Todas las categorías
+                </label>
+
+                {/* Categorías desde la API */}
                 {categorias.map(cat => (
                   <label
-                    key={cat}
+                    key={cat.id}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
                       padding: '10px 12px',
-                      background: filtros.categoria === cat ? '#e8f5e9' : '#fff',
-                      border: `2px solid ${filtros.categoria === cat ? '#2E8B57' : '#e0e0e0'}`,
+                      background: filtros.categoriaId === cat.id ? '#e8f5e9' : '#fff',
+                      border: `2px solid ${filtros.categoriaId === cat.id ? '#2E8B57' : '#e0e0e0'}`,
                       borderRadius: '6px',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
                       fontSize: '0.95em',
-                      fontWeight: filtros.categoria === cat ? '600' : '400',
-                      color: filtros.categoria === cat ? '#2E8B57' : '#333'
+                      fontWeight: filtros.categoriaId === cat.id ? '600' : '400',
+                      color: filtros.categoriaId === cat.id ? '#2E8B57' : '#333'
                     }}
                     onMouseEnter={(e) => {
-                      if (filtros.categoria !== cat) {
+                      if (filtros.categoriaId !== cat.id) {
                         e.currentTarget.style.background = '#f5f5f5';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (filtros.categoria !== cat) {
+                      if (filtros.categoriaId !== cat.id) {
                         e.currentTarget.style.background = '#fff';
                       }
                     }}
@@ -247,21 +545,17 @@ export function Producto() {
                     <input
                       type="radio"
                       name="categoria"
-                      value={cat}
-                      checked={filtros.categoria === cat}
-                      onChange={(e) => {
-                        console.log('Categoría seleccionada:', e.target.value);
-                        setFiltros({ ...filtros, categoria: e.target.value });
-                      }}
+                      checked={filtros.categoriaId === cat.id}
+                      onChange={() => handleCategoriaChange(cat.id, cat.nombre)}
                       style={{ marginRight: '10px', cursor: 'pointer' }}
                     />
-                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    {cat.nombre}
                   </label>
                 ))}
               </div>
             </div>
 
-            {/* Filtro por Rango de Precio */}
+            {/* Filtro por Rango de Precio - CON BOTÓN APLICAR */}
             <div style={{ marginBottom: '25px' }}>
               <label style={{
                 display: 'block',
@@ -283,28 +577,54 @@ export function Producto() {
                 <input
                   type="range"
                   min="0"
-                  max="10000"
-                  step="500"
+                  max="50000"
+                  step="1000"
                   value={filtros.precioMin}
                   onChange={(e) => setFiltros({ ...filtros, precioMin: parseInt(e.target.value) })}
                   style={{ width: '100%', cursor: 'pointer' }}
                 />
               </div>
 
-              <div>
+              <div style={{ marginBottom: '12px' }}>
                 <label style={{ fontSize: '0.85em', color: '#666', display: 'block', marginBottom: '5px' }}>
                   Precio Máximo: ${filtros.precioMax.toLocaleString('es-CL')}
                 </label>
                 <input
                   type="range"
                   min="0"
-                  max="10000"
-                  step="500"
+                  max="50000"
+                  step="1000"
                   value={filtros.precioMax}
                   onChange={(e) => setFiltros({ ...filtros, precioMax: parseInt(e.target.value) })}
                   style={{ width: '100%', cursor: 'pointer' }}
                 />
               </div>
+
+              {/* Botón para aplicar filtro de precio via API */}
+              <button
+                onClick={aplicarFiltroPrecio}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  background: '#FF8C00',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '0.9em',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  transition: 'background 0.3s'
+                }}
+                onMouseOver={(e) => e.target.style.background = '#e67e00'}
+                onMouseOut={(e) => e.target.style.background = '#FF8C00'}
+              >
+                <i className="material-icons" style={{ fontSize: '18px' }}>search</i>
+                Buscar por Precio
+              </button>
             </div>
 
             {/* Ordenar por */}
@@ -453,9 +773,13 @@ export function Producto() {
                       e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.07)";
                     }}
                   >
+                    {/* Imagen del producto - Con fallback */}
                     <img
-                      src={producto.imagen}
+                      src={producto.imagenUrl || producto.imagen || '/placeholder.jpg'}
                       alt={producto.nombre}
+                      onError={(e) => {
+                        e.target.src = '/placeholder.jpg';
+                      }}
                       style={{
                         width: "120px",
                         height: "120px",
@@ -476,18 +800,40 @@ export function Producto() {
                       {producto.nombre}
                     </h3>
                     
+                    {/* Categoría - Desde API */}
                     <p style={{ margin: "4px 0", fontSize: "0.9em", color: "#666" }}>
-                      <strong>Categoría:</strong> {producto.categoria}
+                      <strong>Categoría:</strong> {producto.categoria?.nombre || producto.categoria || 'Sin categoría'}
                     </p>
+
+                    {/* Precio */}
                     <p style={{ margin: "4px 0", fontSize: "1.1em", color: "#8B4513", fontWeight: "bold" }}>
                       ${producto.precio.toLocaleString('es-CL')}
                     </p>
+
+                    {/* Stock */}
                     <p style={{ margin: "4px 0", fontSize: "0.85em", color: "#666" }}>
                       Stock: {producto.stock} unidades
                     </p>
-                    {producto.origen && (
+
+                    {/* País de Origen - Desde API */}
+                    {(producto.paisOrigen || producto.origen) && (
                       <p style={{ margin: "4px 0", fontSize: "0.85em", color: "#666" }}>
-                        <strong>Origen:</strong> {producto.origen}
+                        <strong>Origen:</strong> {producto.paisOrigen?.nombre || producto.origen}
+                      </p>
+                    )}
+                    
+                    {/* Descripción breve - Si existe */}
+                    {producto.descripcion && (
+                      <p style={{ 
+                        margin: "8px 0", 
+                        fontSize: "0.85em", 
+                        color: "#666",
+                        lineHeight: "1.4",
+                        maxHeight: "3em",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}>
+                        {producto.descripcion.substring(0, 100)}{producto.descripcion.length > 100 ? '...' : ''}
                       </p>
                     )}
                     
@@ -589,12 +935,13 @@ export function Producto() {
                     fontWeight: '600'
                   }}
                 >
-                  Limpiar Filtros
                 </button>
               </div>
             )}
           </div>
         </div>
+        </>
+        )}
       </main>
       <Footer />
     </>
