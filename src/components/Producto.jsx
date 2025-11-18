@@ -18,11 +18,16 @@ export function Producto() {
     return {
       id: productoAPI.idProducto,
       nombre: productoAPI.nombreProducto,
-      categoria: productoAPI.categoria?.nombreCategoria || productoAPI.categoria,
+      categoria: {
+        id: productoAPI.categoria?.idCategoria,
+        nombre: productoAPI.categoria?.nombreCategoria,
+        descripcion: productoAPI.categoria?.descripcionCategoria
+      },
+      categoriaNombre: productoAPI.categoria?.nombreCategoria, // Para compatibilidad
       descripcion: productoAPI.descripcionProducto,
       precio: productoAPI.precioProducto,
       stock: productoAPI.stockProducto,
-      origen: productoAPI.origen,
+      origen: productoAPI.paisOrigen?.nombre || productoAPI.origen,
       imagen: productoAPI.imagenUrl,
       comentarios: productoAPI.comentarios || []
     };
@@ -31,9 +36,13 @@ export function Producto() {
   // Estado para manejar las cantidades de cada producto
   const [quantities, setQuantities] = useState({});
   
+  // Estado para las categorías obtenidas desde la API
+  const [categorias, setCategorias] = useState([]);
+  
   // Estados para los filtros
   const [filtros, setFiltros] = useState({
-    categoria: 'todas',
+    categoriaId: null,
+    categoriaNombre: 'todas',
     precioMin: 0,
     precioMax: 10000,
     ordenar: 'ninguno'
@@ -55,94 +64,90 @@ export function Producto() {
   }, []);
 
   /**
-   * Función para cargar productos y categorías desde la API
-   * Utiliza Promise.all para hacer ambas peticiones en paralelo
+   * Función para cargar productos desde la API
+   * Extrae las categorías únicas de los productos
    */
   const fetchProductosYCategorias = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      console.log('🔄 Cargando productos y categorías desde la API...');
+      console.log('🔄 Cargando productos desde la API...');
+      console.log('URL de la API:', API_URLS.productos);
       
-      // Peticiones en paralelo para optimizar tiempo de carga
-      const [productosData, categoriasData] = await Promise.all([
-        productosService.getAll(),
-        categoriasService.getAll()
-      ]);
+      // Realizar la petición GET a la API
+      const response = await axios.get(API_URLS.productos, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
-      console.log('✅ Productos cargados:', productosData.length);
-      console.log('✅ Categorías cargadas:', categoriasData.length);
-      
-      setProductos(productosData);
-      setCategorias(categoriasData);
-      
-      // Ajustar rango de precios basado en productos reales
-      if (productosData.length > 0) {
-        const precios = productosData.map(p => p.precio);
-        const maxPrecio = Math.max(...precios);
-        setFiltros(prev => ({
-          ...prev,
-          precioMax: Math.ceil(maxPrecio / 1000) * 1000 // Redondear al millar superior
-        }));
+      // Si la petición fue exitosa
+      if (response.status === 200 && response.data) {
+        console.log('✅ Productos raw desde API:', response.data);
+        
+        // Normalizar los productos de la API
+        const productosNormalizados = response.data.map(normalizarProducto);
+        console.log('✅ Productos normalizados:', productosNormalizados);
+        
+        setProductos(productosNormalizados);
+        
+        // Extraer categorías únicas de los productos
+        const categoriasMap = new Map();
+        response.data.forEach(producto => {
+          if (producto.categoria && producto.categoria.idCategoria) {
+            categoriasMap.set(producto.categoria.idCategoria, {
+              id: producto.categoria.idCategoria,
+              nombre: producto.categoria.nombreCategoria,
+              descripcion: producto.categoria.descripcionCategoria
+            });
+          }
+        });
+        
+        const categoriasNormalizadas = Array.from(categoriasMap.values());
+        console.log('✅ Categorías extraídas:', categoriasNormalizadas);
+        
+        setCategorias(categoriasNormalizadas);
+        
+        // Ajustar rango de precios basado en productos reales
+        if (productosNormalizados.length > 0) {
+          const precios = productosNormalizados.map(p => p.precio).filter(p => p);
+          const maxPrecio = Math.max(...precios);
+          setFiltros(prev => ({
+            ...prev,
+            precioMax: Math.ceil(maxPrecio / 1000) * 1000 // Redondear al millar superior
+          }));
+        }
       }
       
+      setLoading(false);
     } catch (error) {
       console.error('❌ Error cargando datos:', error);
-      setError(
-        error.response?.status === 404 
-          ? 'No se encontraron productos' 
-          : 'Error al cargar productos. Por favor, intenta nuevamente.'
-      );
-    } finally {
+      console.error('Respuesta del servidor:', error.response?.data);
+      
+      let mensajeError = 'Error al cargar productos. Usando datos de respaldo.';
+      
+      if (error.response) {
+        mensajeError = error.response.data?.message || error.response.data?.error || mensajeError;
+      } else if (error.request) {
+        mensajeError = 'No se pudo conectar con el servidor. Usando datos de respaldo.';
+      }
+      
+      console.warn(mensajeError);
+      setError(mensajeError);
+      
+      // En caso de error, usar productos estáticos como respaldo
+      setProductos(productosEstaticos);
       setLoading(false);
-    }
-  };
-
-  /**
-   * Función para filtrar productos por categoría usando la API
-   * @param {number|null} categoriaId - ID de la categoría o null para todas
-   */
-  const filtrarPorCategoriaAPI = async (categoriaId) => {
-    if (!categoriaId) {
-      // Si es "todas", recargar todos los productos
-      await fetchProductosYCategorias();
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    
-    try {
-      console.log(`🔄 Filtrando productos por categoría ${categoriaId}...`);
-      const productosData = await productosService.searchByCategory(categoriaId);
-      console.log('✅ Productos filtrados:', productosData.length);
-      setProductos(productosData);
-    } catch (error) {
-      console.error('❌ Error filtrando por categoría:', error);
-      setError('Error al filtrar productos');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * Función para filtrar productos por rango de precio usando la API
-   * @param {number} min - Precio mínimo
-   * @param {number} max - Precio máximo
-   */
-  const filtrarPorPrecioAPI = async (min, max) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      console.log(`🔄 Filtrando productos por precio: $${min} - $${max}...`);
-      const productosData = await productosService.searchByPriceRange(min, max);
-      console.log('✅ Productos filtrados:', productosData.length);
-      setProductos(productosData);
-    } catch (error) {
-      console.error('❌ Error filtrando por precio:', error);
-      setError('Error al filtrar productos');
+      
+      // Mostrar toast si está disponible
+      if (window.M) {
+        window.M.toast({ 
+          html: mensajeError, 
+          classes: 'orange darken-2',
+          displayLength: 4000
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -151,9 +156,6 @@ export function Producto() {
   // ============================================
   // FUNCIONES DE MANEJO DE EVENTOS
   // ============================================
-
-  // Obtener categorías únicas, filtrando valores undefined o null
-  const categorias = ['todas', ...new Set(productos.map(p => p.categoria).filter(cat => cat && typeof cat === 'string'))];
 
   // Función para actualizar cantidad de un producto
   const handleQuantityChange = (productId, value) => {
@@ -221,26 +223,18 @@ export function Producto() {
     setFiltros(prev => ({
       ...prev,
       categoriaId: categoriaId,
-      categoriaNombre: categoriaNombre,
-      usarAPI: !!categoriaId // Usar API si hay categoría seleccionada
+      categoriaNombre: categoriaNombre
     }));
-    
-    // Opcional: Llamar directamente a la API para filtrar
-    // Comentar si prefieres filtrado local
-    if (categoriaId) {
-      filtrarPorCategoriaAPI(categoriaId);
-    } else {
-      fetchProductosYCategorias(); // Recargar todos
-    }
   };
 
   /**
-   * Aplica filtro de precio usando la API
+   * Aplica filtro de precio (filtrado local, no requiere API)
    * Se activa con un botón para evitar múltiples llamadas
    */
   const aplicarFiltroPrecio = () => {
     console.log(`💰 Aplicando filtro de precio: $${filtros.precioMin} - $${filtros.precioMax}`);
-    filtrarPorPrecioAPI(filtros.precioMin, filtros.precioMax);
+    // El filtrado se hace automáticamente en productosFiltrados
+    // Esta función solo sirve para dar feedback al usuario
   };
 
   /**
@@ -254,8 +248,7 @@ export function Producto() {
       categoriaNombre: 'todas',
       precioMin: 0,
       precioMax: 50000,
-      ordenar: 'ninguno',
-      usarAPI: false
+      ordenar: 'ninguno'
     });
     
     // Recargar todos los productos
@@ -268,22 +261,16 @@ export function Producto() {
   
   /**
    * Filtra y ordena productos localmente
-   * Este filtrado se aplica DESPUÉS de obtener datos de la API
-   * o cuando no se usan los filtros de API
    */
   const productosFiltrados = productos
     .filter(producto => {
-      // Si se está usando API para filtrar, no filtrar localmente
-      if (filtros.usarAPI) {
-        return true;
-      }
-      
-      // Filtrar por categoría (solo si no se usa API)
+      // Filtrar por categoría
       if (filtros.categoriaId && producto.categoria?.id !== filtros.categoriaId) {
+        console.log('Producto filtrado por categoría:', producto.nombre, 'categoria:', producto.categoria?.id, 'filtro:', filtros.categoriaId);
         return false;
       }
       
-      // Filtrar por precio (siempre aplicar filtro local adicional)
+      // Filtrar por precio
       if (producto.precio < filtros.precioMin || producto.precio > filtros.precioMax) {
         return false;
       }
@@ -308,69 +295,11 @@ export function Producto() {
 
   // Log para debug
   console.log('Filtros actuales:', filtros);
+  console.log('Productos totales:', productos.length);
   console.log('Productos filtrados:', productosFiltrados.length);
-
-  // useEffect para cargar productos desde la API
-  useEffect(() => {
-    const fetchProductos = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        console.log('Cargando productos desde:', API_URLS.productos);
-        
-        // Realizar la petición GET a la API
-        const response = await axios.get(API_URLS.productos, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-
-        // Si la petición fue exitosa
-        if (response.status === 200 && response.data) {
-          console.log('Productos cargados desde API:', response.data);
-          // Normalizar los productos de la API
-          const productosNormalizados = response.data.map(normalizarProducto);
-          console.log('Productos normalizados:', productosNormalizados);
-          setProductos(productosNormalizados);
-        }
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Error al cargar productos:', error);
-        console.error('Respuesta del servidor:', error.response?.data);
-        
-        let mensajeError = 'Error al cargar productos. Usando datos de respaldo.';
-        
-        if (error.response) {
-          // El servidor respondió con un código de estado fuera del rango 2xx
-          mensajeError = error.response.data?.message || error.response.data?.error || mensajeError;
-        } else if (error.request) {
-          // La petición se hizo pero no hubo respuesta
-          mensajeError = 'No se pudo conectar con el servidor. Usando datos de respaldo.';
-        }
-        
-        console.warn(mensajeError);
-        setError(mensajeError);
-        
-        // En caso de error, usar productos estáticos como respaldo
-        setProductos(productosEstaticos);
-        setLoading(false);
-        
-        // Mostrar toast si está disponible
-        if (window.M) {
-          window.M.toast({ 
-            html: mensajeError, 
-            classes: 'orange darken-2',
-            displayLength: 4000
-          });
-        }
-      }
-    };
-
-    fetchProductos();
-  }, []); // Se ejecuta solo una vez al montar el componente
-
+  if (productos.length > 0) {
+    console.log('Ejemplo de producto:', productos[0]);
+  }
 
   return (
     <>
@@ -844,7 +773,7 @@ export function Producto() {
                     
                     {/* Categoría - Desde API */}
                     <p style={{ margin: "4px 0", fontSize: "0.9em", color: "#666" }}>
-                      <strong>Categoría:</strong> {producto.categoria || 'Sin categoría'}
+                      <strong>Categoría:</strong> {producto.categoria?.nombre || producto.categoriaNombre || 'Sin categoría'}
                     </p>
 
                     {/* Precio */}
