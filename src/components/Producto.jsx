@@ -310,16 +310,6 @@ export function Producto() {
   console.log('Filtros actuales:', filtros);
   console.log('Productos filtrados:', productosFiltrados.length);
 
-  // Función para resetear filtros
-  const resetFiltros = () => {
-    setFiltros({
-      categoria: 'todas',
-      precioMin: 0,
-      precioMax: 10000,
-      ordenar: 'ninguno'
-    });
-  };
-
   // useEffect para cargar productos desde la API
   useEffect(() => {
     const fetchProductos = async () => {
