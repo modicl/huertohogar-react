@@ -1,11 +1,33 @@
 import { Footer } from './Footer'
 import { Header } from './Header'
 import './Producto.css'
-import { productos } from '../data/productos.jsx'
+import { productos as productosEstaticos } from '../data/productos.jsx'
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+import { API_URLS } from '../config/api.js'
 
 export function Producto() {
+  // Estado para los productos obtenidos desde la API
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Función para normalizar productos de la API al formato del componente
+  const normalizarProducto = (productoAPI) => {
+    return {
+      id: productoAPI.idProducto,
+      nombre: productoAPI.nombreProducto,
+      categoria: productoAPI.categoria?.nombreCategoria || productoAPI.categoria,
+      descripcion: productoAPI.descripcionProducto,
+      precio: productoAPI.precioProducto,
+      stock: productoAPI.stockProducto,
+      origen: productoAPI.origen,
+      imagen: productoAPI.imagenUrl,
+      comentarios: productoAPI.comentarios || []
+    };
+  };
+  
   // Estado para manejar las cantidades de cada producto
   const [quantities, setQuantities] = useState({});
   
@@ -130,17 +152,10 @@ export function Producto() {
   // FUNCIONES DE MANEJO DE EVENTOS
   // ============================================
 
-  // Obtener categorías únicas
+  // Obtener categorías únicas, filtrando valores undefined o null
+  const categorias = ['todas', ...new Set(productos.map(p => p.categoria).filter(cat => cat && typeof cat === 'string'))];
 
-  // ============================================
-  // FUNCIONES DE MANEJO DE EVENTOS
-  // ============================================
-
-  /**
-   * Actualiza la cantidad seleccionada para un producto
-   * @param {number} productId - ID del producto
-   * @param {string} value - Valor del input
-   */
+  // Función para actualizar cantidad de un producto
   const handleQuantityChange = (productId, value) => {
     const newValue = parseInt(value) || 1;
     setQuantities(prev => ({
@@ -292,13 +307,80 @@ export function Producto() {
     });
 
   // Log para debug
-  console.log('📊 Estado actual:', {
-    totalProductos: productos.length,
-    productosFiltrados: productosFiltrados.length,
-    filtrosActivos: filtros,
-    loading,
-    error
-  });
+  console.log('Filtros actuales:', filtros);
+  console.log('Productos filtrados:', productosFiltrados.length);
+
+  // Función para resetear filtros
+  const resetFiltros = () => {
+    setFiltros({
+      categoria: 'todas',
+      precioMin: 0,
+      precioMax: 10000,
+      ordenar: 'ninguno'
+    });
+  };
+
+  // useEffect para cargar productos desde la API
+  useEffect(() => {
+    const fetchProductos = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('Cargando productos desde:', API_URLS.productos);
+        
+        // Realizar la petición GET a la API
+        const response = await axios.get(API_URLS.productos, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // Si la petición fue exitosa
+        if (response.status === 200 && response.data) {
+          console.log('Productos cargados desde API:', response.data);
+          // Normalizar los productos de la API
+          const productosNormalizados = response.data.map(normalizarProducto);
+          console.log('Productos normalizados:', productosNormalizados);
+          setProductos(productosNormalizados);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error al cargar productos:', error);
+        console.error('Respuesta del servidor:', error.response?.data);
+        
+        let mensajeError = 'Error al cargar productos. Usando datos de respaldo.';
+        
+        if (error.response) {
+          // El servidor respondió con un código de estado fuera del rango 2xx
+          mensajeError = error.response.data?.message || error.response.data?.error || mensajeError;
+        } else if (error.request) {
+          // La petición se hizo pero no hubo respuesta
+          mensajeError = 'No se pudo conectar con el servidor. Usando datos de respaldo.';
+        }
+        
+        console.warn(mensajeError);
+        setError(mensajeError);
+        
+        // En caso de error, usar productos estáticos como respaldo
+        setProductos(productosEstaticos);
+        setLoading(false);
+        
+        // Mostrar toast si está disponible
+        if (window.M) {
+          window.M.toast({ 
+            html: mensajeError, 
+            classes: 'orange darken-2',
+            displayLength: 4000
+          });
+        }
+      }
+    };
+
+    fetchProductos();
+  }, []); // Se ejecuta solo una vez al montar el componente
+
 
   return (
     <>
@@ -308,77 +390,47 @@ export function Producto() {
           Nuestra Tienda
         </h1>
 
-        {/* ESTADO DE CARGA */}
+        {/* Mostrar estado de carga */}
         {loading && (
-          <div style={{
-            textAlign: 'center',
-            padding: '60px 20px',
-            background: '#f8f8f8',
-            borderRadius: '12px',
-            marginBottom: '20px'
-          }}>
-            <div style={{
-              width: '50px',
-              height: '50px',
-              border: '4px solid #e0e0e0',
-              borderTop: '4px solid #2E8B57',
-              borderRadius: '50%',
-              margin: '0 auto 20px',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-            <h3 style={{ color: '#2E8B57', marginBottom: '10px' }}>
+          <div className="center" style={{ padding: '60px 20px' }}>
+            <div className="preloader-wrapper big active">
+              <div className="spinner-layer spinner-green-only">
+                <div className="circle-clipper left">
+                  <div className="circle"></div>
+                </div>
+                <div className="gap-patch">
+                  <div className="circle"></div>
+                </div>
+                <div className="circle-clipper right">
+                  <div className="circle"></div>
+                </div>
+              </div>
+            </div>
+            <p style={{ marginTop: '20px', fontSize: '1.2em', color: '#666' }}>
               Cargando productos...
-            </h3>
-            <p style={{ color: '#999' }}>
-              Obteniendo datos desde el servidor
             </p>
-            <style>
-              {`
-                @keyframes spin {
-                  0% { transform: rotate(0deg); }
-                  100% { transform: rotate(360deg); }
-                }
-              `}
-            </style>
           </div>
         )}
 
-        {/* ESTADO DE ERROR */}
+        {/* Mostrar error si existe (pero aún así mostrar productos de respaldo) */}
         {error && !loading && (
-          <div style={{
-            textAlign: 'center',
-            padding: '40px 20px',
-            background: '#fee',
-            borderRadius: '12px',
+          <div className="center" style={{ 
+            padding: '15px 20px', 
+            background: '#fff3cd', 
+            border: '1px solid #ffc107',
+            borderRadius: '8px',
             marginBottom: '20px',
-            border: '2px solid #fcc'
+            color: '#856404'
           }}>
-            <i className="material-icons" style={{ fontSize: '48px', color: '#c00', marginBottom: '16px' }}>
-              error_outline
+            <i className="material-icons" style={{ verticalAlign: 'middle', marginRight: '8px' }}>
+              warning
             </i>
-            <h3 style={{ color: '#c00', marginBottom: '10px' }}>
-              {error}
-            </h3>
-            <button
-              onClick={fetchProductosYCategorias}
-              style={{
-                padding: '10px 24px',
-                background: '#2E8B57',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontWeight: '600',
-                marginTop: '10px'
-              }}
-            >
-              Reintentar
-            </button>
+            {error}
           </div>
         )}
 
-        {/* CONTENIDO PRINCIPAL - Solo mostrar si no hay error ni está cargando */}
-        {!loading && !error && (
+        {/* Contenido principal (solo mostrar cuando no está cargando) */}
+        {!loading && (
           <>
             {/* Botón para mostrar filtros en móvil */}
             <div 
@@ -388,11 +440,11 @@ export function Producto() {
                 marginBottom: '20px'
               }}
             >
-          <button
-            onClick={() => setShowFiltros(!showFiltros)}
-            style={{
-              width: '100%',
-              padding: '14px 20px',
+              <button
+                onClick={() => setShowFiltros(!showFiltros)}
+                style={{
+                  width: '100%',
+                  padding: '14px 20px',
               background: '#2E8B57',
               color: '#fff',
               border: 'none',
@@ -746,10 +798,10 @@ export function Producto() {
                   gap: "24px"
                 }}
               >
-                {productosFiltrados.map(producto => (
+                {productosFiltrados.map((producto, index) => (
                   <div
                     className="product-card"
-                    key={producto.id}
+                    key={producto.id || `producto-${index}`}
                     style={{
                       border: "1px solid #e0e0e0",
                       borderRadius: "10px",
@@ -802,17 +854,17 @@ export function Producto() {
                     
                     {/* Categoría - Desde API */}
                     <p style={{ margin: "4px 0", fontSize: "0.9em", color: "#666" }}>
-                      <strong>Categoría:</strong> {producto.categoria?.nombre || producto.categoria || 'Sin categoría'}
+                      <strong>Categoría:</strong> {producto.categoria || 'Sin categoría'}
                     </p>
 
                     {/* Precio */}
                     <p style={{ margin: "4px 0", fontSize: "1.1em", color: "#8B4513", fontWeight: "bold" }}>
-                      ${producto.precio.toLocaleString('es-CL')}
+                      ${(producto.precio || 0).toLocaleString('es-CL')}
                     </p>
 
                     {/* Stock */}
                     <p style={{ margin: "4px 0", fontSize: "0.85em", color: "#666" }}>
-                      Stock: {producto.stock} unidades
+                      Stock: {producto.stock || 0} unidades
                     </p>
 
                     {/* País de Origen - Desde API */}
@@ -846,7 +898,7 @@ export function Producto() {
                         id={`quantity-${producto.id}`}
                         type="number"
                         min="1"
-                        max={producto.stock}
+                        max={producto.stock || 99}
                         value={quantities[producto.id] || 1}
                         onChange={(e) => handleQuantityChange(producto.id, e.target.value)}
                         style={{
@@ -940,7 +992,7 @@ export function Producto() {
             )}
           </div>
         </div>
-        </>
+          </>
         )}
       </main>
       <Footer />
