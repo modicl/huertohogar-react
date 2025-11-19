@@ -1,47 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import axios from 'axios';
 
 export function PerfilUsuario() {
   const { user, logout } = useAuth();
   const [vistaActual, setVistaActual] = useState('resumen');
+  const [ordenes, setOrdenes] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Órdenes de ejemplo
-  const ordenesEjemplo = [
-    {
-      id: 1,
-      fecha: '2024-11-10',
-      total: 25990,
-      estado: 'Entregado',
-      productos: [
-        { nombre: 'Lechuga Orgánica', cantidad: 2, precio: 1990 },
-        { nombre: 'Tomates Cherry', cantidad: 3, precio: 2990 },
-        { nombre: 'Zanahorias', cantidad: 1, precio: 1500 }
-      ]
-    },
-    {
-      id: 2,
-      fecha: '2024-11-08',
-      total: 18500,
-      estado: 'En camino',
-      productos: [
-        { nombre: 'Espinacas', cantidad: 2, precio: 2500 },
-        { nombre: 'Brócoli', cantidad: 1, precio: 3500 }
-      ]
-    },
-    {
-      id: 3,
-      fecha: '2024-11-05',
-      total: 32400,
-      estado: 'Entregado',
-      productos: [
-        { nombre: 'Mix de Lechugas', cantidad: 3, precio: 2800 },
-        { nombre: 'Pepinos', cantidad: 2, precio: 1900 },
-        { nombre: 'Albahaca Fresca', cantidad: 1, precio: 2500 }
-      ]
-    }
-  ];
+  // Fetch de órdenes
+  useEffect(() => {
+    const fetchOrdenes = async () => {
+      if (vistaActual === 'ordenes') {
+        setLoading(true);
+        try {
+          const token = localStorage.getItem('token');
+          const response = await axios.get('https://hh-ordenes-backend-barnt.ondigitalocean.app/api/v1/ordenes/mis-ordenes', {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          setOrdenes(response.data);
+        } catch (err) {
+          console.error('Error al obtener órdenes:', err);
+          setError('No se pudieron cargar tus órdenes. Por favor intenta más tarde.');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchOrdenes();
+  }, [vistaActual]);
 
   const handleLogout = () => {
     logout();
@@ -124,7 +117,7 @@ export function PerfilUsuario() {
                   <h4 style={{ fontFamily: "'Playfair Display', serif", color: "#8B4513", marginBottom: '30px' }}>
                     Bienvenido, {user.nombre || user.pnombre}!
                   </h4>
-                  
+
                   <div className="row">
                     <div className="col s12">
                       <h6 style={{ color: '#666', marginBottom: '20px', fontSize: '18px' }}>
@@ -217,58 +210,6 @@ export function PerfilUsuario() {
                       </div>
                     </div>
                   </div>
-
-                  <div className="divider" style={{ margin: '30px 0' }}></div>
-
-                  <div className="row">
-                    <div className="col s12">
-                      <h6 style={{ color: '#666', marginBottom: '15px', fontSize: '18px' }}>
-                        Resumen de actividad
-                      </h6>
-                      <div className="row">
-                        <div className="col s12 m4">
-                          <div style={{ 
-                            textAlign: 'center', 
-                            padding: '20px', 
-                            backgroundColor: '#f5f5f5', 
-                            borderRadius: '10px',
-                            marginBottom: '10px'
-                          }}>
-                            <h3 style={{ color: '#2E8B57', margin: '0' }}>{ordenesEjemplo.length}</h3>
-                            <p style={{ margin: '5px 0', color: '#666' }}>Órdenes totales</p>
-                          </div>
-                        </div>
-                        <div className="col s12 m4">
-                          <div style={{ 
-                            textAlign: 'center', 
-                            padding: '20px', 
-                            backgroundColor: '#f5f5f5', 
-                            borderRadius: '10px',
-                            marginBottom: '10px'
-                          }}>
-                            <h3 style={{ color: '#2E8B57', margin: '0' }}>
-                              ${ordenesEjemplo.reduce((sum, orden) => sum + orden.total, 0).toLocaleString('es-CL')}
-                            </h3>
-                            <p style={{ margin: '5px 0', color: '#666' }}>Total gastado</p>
-                          </div>
-                        </div>
-                        <div className="col s12 m4">
-                          <div style={{ 
-                            textAlign: 'center', 
-                            padding: '20px', 
-                            backgroundColor: '#f5f5f5', 
-                            borderRadius: '10px',
-                            marginBottom: '10px'
-                          }}>
-                            <h3 style={{ color: '#2E8B57', margin: '0' }}>
-                              {ordenesEjemplo.filter(o => o.estado === 'Entregado').length}
-                            </h3>
-                            <p style={{ margin: '5px 0', color: '#666' }}>Entregadas</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -278,14 +219,44 @@ export function PerfilUsuario() {
                     Mis Órdenes
                   </h4>
 
-                  {ordenesEjemplo.map((orden) => (
-                    <div key={orden.id} className="card" style={{ marginBottom: '20px', borderRadius: '10px' }}>
+                  {loading && (
+                    <div className="center-align">
+                      <div className="preloader-wrapper active">
+                        <div className="spinner-layer spinner-green-only">
+                          <div className="circle-clipper left">
+                            <div className="circle"></div>
+                          </div><div className="gap-patch">
+                            <div className="circle"></div>
+                          </div><div className="circle-clipper right">
+                            <div className="circle"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="card-panel red lighten-4 red-text text-darken-4">
+                      {error}
+                    </div>
+                  )}
+
+                  {!loading && !error && ordenes.length === 0 && (
+                    <p className="center-align">No tienes órdenes registradas.</p>
+                  )}
+
+                  {!loading && !error && ordenes.map((orden) => (
+                    <div key={orden.idOrden} className="card" style={{ marginBottom: '20px', borderRadius: '10px' }}>
                       <div className="card-content">
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
                           <div>
-                            <strong style={{ fontSize: '18px' }}>Orden #{orden.id}</strong>
+                            <strong style={{ fontSize: '18px' }}>Orden #{orden.idOrden}</strong>
                             <p style={{ margin: '5px 0', color: '#666' }}>
-                              Fecha: {new Date(orden.fecha).toLocaleDateString('es-CL')}
+                              Fecha: {new Date(orden.fechaOrden).toLocaleDateString('es-CL')}
+                            </p>
+                            <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
+                              <i className="tiny material-icons" style={{ verticalAlign: 'middle', marginRight: '4px' }}>location_on</i>
+                              {orden.direccionEnvio}
                             </p>
                           </div>
                           <div style={{ textAlign: 'right' }}>
@@ -299,7 +270,7 @@ export function PerfilUsuario() {
                               {orden.estado}
                             </span>
                             <p style={{ margin: '10px 0 0 0', fontSize: '18px', fontWeight: 'bold', color: '#2E8B57' }}>
-                              Total: ${orden.total.toLocaleString('es-CL')}
+                              Total: ${orden.totalOrden.toLocaleString('es-CL')}
                             </p>
                           </div>
                         </div>
@@ -308,15 +279,15 @@ export function PerfilUsuario() {
 
                         <h6 style={{ marginBottom: '10px' }}>Productos:</h6>
                         <ul style={{ listStyle: 'none', padding: 0 }}>
-                          {orden.productos.map((producto, index) => (
-                            <li key={index} style={{ 
-                              padding: '8px 0', 
-                              borderBottom: index < orden.productos.length - 1 ? '1px solid #eee' : 'none',
+                          {orden.detalleOrden.map((detalle, index) => (
+                            <li key={detalle.idDetalle || index} style={{
+                              padding: '8px 0',
+                              borderBottom: index < orden.detalleOrden.length - 1 ? '1px solid #eee' : 'none',
                               display: 'flex',
                               justifyContent: 'space-between'
                             }}>
-                              <span>{producto.nombre} (x{producto.cantidad})</span>
-                              <span style={{ color: '#2E8B57' }}>${(producto.precio * producto.cantidad).toLocaleString('es-CL')}</span>
+                              <span>{detalle.producto.nombreProducto} (x{detalle.cantidad})</span>
+                              <span style={{ color: '#2E8B57' }}>${(detalle.precioUnitario * detalle.cantidad).toLocaleString('es-CL')}</span>
                             </li>
                           ))}
                         </ul>

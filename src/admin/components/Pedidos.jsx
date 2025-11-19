@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ordenes as ordenesIniciales } from '../../data/ordenes.jsx';
+import axios from 'axios';
 import './AdminDashboard.css';
 
 export function Pedidos() {
   const [ordenes, setOrdenes] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedOrden, setSelectedOrden] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [busqueda, setBusqueda] = useState('');
@@ -13,28 +14,66 @@ export function Pedidos() {
 
   // Cargar órdenes al iniciar
   useEffect(() => {
-    const storedOrders = localStorage.getItem('ordenes');
-    if (storedOrders) {
-      setOrdenes(JSON.parse(storedOrders));
-    } else {
-      setOrdenes(ordenesIniciales);
-      localStorage.setItem('ordenes', JSON.stringify(ordenesIniciales));
-    }
+    fetchOrdenes();
   }, []);
 
   // Inicializar Materialize Modal y Select
   useEffect(() => {
     if (window.M) {
-      const modals = document.querySelectorAll('.modal');
-      window.M.Modal.init(modals);
-      
-      const selects = document.querySelectorAll('select');
-      window.M.FormSelect.init(selects);
+      setTimeout(() => {
+        const modals = document.querySelectorAll('.modal');
+        window.M.Modal.init(modals);
+
+        // Only init selects that are not browser-default
+        const selects = document.querySelectorAll('select:not(.browser-default)');
+        window.M.FormSelect.init(selects);
+      }, 500);
     }
   }, [ordenes, selectedOrden]);
 
+  const fetchOrdenes = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+
+      // 1. Fetch all orders
+      const response = await axios.get('https://hh-ordenes-backend-barnt.ondigitalocean.app/api/v1/ordenes', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const allOrders = response.data;
+
+      // 2. Fetch user details for each order
+      const enrichedOrders = await Promise.all(allOrders.map(async (order) => {
+        try {
+          if (!order.idUsuario) return order;
+
+          const userResponse = await axios.get(`https://hh-usuario-backend-efp2p.ondigitalocean.app/api/v1/usuarios/${order.idUsuario}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          return {
+            ...order,
+            usuario: { ...order.usuario, ...userResponse.data }
+          };
+        } catch (userErr) {
+          console.error(`Could not fetch user ${order.idUsuario}`, userErr);
+          return order;
+        }
+      }));
+
+      setOrdenes(enrichedOrders);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      setLoading(false);
+      if (window.M) window.M.toast({ html: 'Error al cargar los pedidos', classes: 'red' });
+    }
+  };
+
   // Formatear fecha
   const formatearFecha = (fecha) => {
+    if (!fecha) return '';
     const date = new Date(fecha);
     return date.toLocaleDateString('es-CL', {
       year: 'numeric',
@@ -54,70 +93,64 @@ export function Pedidos() {
   };
 
   // Cambiar estado de la orden
-  const handleCambiarEstado = (ordenId, nuevoEstado) => {
-    const ordenesActualizadas = ordenes.map(orden =>
-      orden.id === ordenId ? { ...orden, estado: nuevoEstado } : orden
-    );
-    setOrdenes(ordenesActualizadas);
-    localStorage.setItem('ordenes', JSON.stringify(ordenesActualizadas));
-    
-    // Actualizar selectedOrden si está abierta
-    if (selectedOrden && selectedOrden.id === ordenId) {
-      setSelectedOrden({ ...selectedOrden, estado: nuevoEstado });
-    }
-    
-    window.M.toast({ html: 'Estado actualizado correctamente', classes: 'green' });
-  };
+  const handleCambiarEstado = async (ordenId, nuevoEstado) => {
+    try {
+      const token = localStorage.getItem('token');
 
-  // Actualizar notas de la orden
-  const handleActualizarNotas = (ordenId, nuevasNotas) => {
-    const ordenesActualizadas = ordenes.map(orden =>
-      orden.id === ordenId ? { ...orden, notas: nuevasNotas } : orden
-    );
-    setOrdenes(ordenesActualizadas);
-    localStorage.setItem('ordenes', JSON.stringify(ordenesActualizadas));
-    
-    if (selectedOrden && selectedOrden.id === ordenId) {
-      setSelectedOrden({ ...selectedOrden, notas: nuevasNotas });
-    }
-  };
+      await axios.patch(`https://hh-ordenes-backend-barnt.ondigitalocean.app/api/v1/ordenes/${ordenId}`,
+        { estado: nuevoEstado },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-  // Eliminar orden
-  const handleEliminarOrden = (ordenId) => {
-    if (window.confirm('¿Estás seguro de eliminar esta orden? Esta acción no se puede deshacer.')) {
-      const ordenesActualizadas = ordenes.filter(orden => orden.id !== ordenId);
+      // Actualizar estado local
+      const ordenesActualizadas = ordenes.map(orden =>
+        orden.idOrden === ordenId ? { ...orden, estado: nuevoEstado } : orden
+      );
       setOrdenes(ordenesActualizadas);
-      localStorage.setItem('ordenes', JSON.stringify(ordenesActualizadas));
-      
-      // Cerrar modal si está abierto
-      const modal = document.getElementById('detalleModal');
-      const instance = window.M.Modal.getInstance(modal);
-      if (instance) instance.close();
-      
-      window.M.toast({ html: 'Orden eliminada correctamente', classes: 'red' });
+
+      // Actualizar selectedOrden si está abierta
+      if (selectedOrden && selectedOrden.idOrden === ordenId) {
+        setSelectedOrden({ ...selectedOrden, estado: nuevoEstado });
+      }
+
+      if (window.M) window.M.toast({ html: 'Estado actualizado correctamente', classes: 'green' });
+    } catch (error) {
+      console.error('Error updating status:', error);
+      if (window.M) window.M.toast({ html: 'Error al actualizar el estado', classes: 'red' });
     }
   };
 
   // Filtrar órdenes
   const ordenesFiltradas = ordenes.filter(orden => {
     const cumpleFiltroEstado = filtroEstado === 'Todos' || orden.estado === filtroEstado;
-    const cumpleBusqueda = 
-      orden.id.toString().includes(busqueda) ||
-      orden.id_usuario.toLowerCase().includes(busqueda.toLowerCase()) ||
-      orden.shippingInfo.fullName.toLowerCase().includes(busqueda.toLowerCase()) ||
-      orden.shippingInfo.email.toLowerCase().includes(busqueda.toLowerCase());
-    
+
+    const nombreCliente = orden.usuario ? `${orden.usuario.nombre} ${orden.usuario.aPaterno || ''}` : '';
+    const emailCliente = orden.usuario ? orden.usuario.email : '';
+
+    const cumpleBusqueda =
+      orden.idOrden.toString().includes(busqueda) ||
+      nombreCliente.toLowerCase().includes(busqueda.toLowerCase()) ||
+      emailCliente.toLowerCase().includes(busqueda.toLowerCase());
+
     return cumpleFiltroEstado && cumpleBusqueda;
   });
 
   // Obtener color según estado
   const getEstadoColor = (estado) => {
     switch (estado) {
-      case 'Pendiente': return { bg: '#fff3cd', color: '#856404' };
-      case 'En Proceso': return { bg: '#cfe2ff', color: '#084298' };
-      case 'Completado': return { bg: '#d1e7dd', color: '#0f5132' };
-      case 'Cancelado': return { bg: '#f8d7da', color: '#842029' };
-      case 'Enviado': return { bg: '#d3d3f5', color: '#3d3d99' };
+      case 'Pendiente':
+      case 'pendiente':
+        return { bg: '#fff3cd', color: '#856404' };
+      case 'En Proceso':
+      case 'En camino':
+        return { bg: '#cfe2ff', color: '#084298' };
+      case 'Completado':
+      case 'Entregado':
+        return { bg: '#d1e7dd', color: '#0f5132' };
+      case 'Cancelado':
+        return { bg: '#f8d7da', color: '#842029' };
+      case 'Enviado':
+        return { bg: '#d3d3f5', color: '#3d3d99' };
       default: return { bg: '#e2e3e5', color: '#41464b' };
     }
   };
@@ -125,11 +158,25 @@ export function Pedidos() {
   // Estadísticas
   const stats = {
     total: ordenes.length,
-    pendientes: ordenes.filter(o => o.estado === 'Pendiente').length,
-    enProceso: ordenes.filter(o => o.estado === 'En Proceso').length,
-    completadas: ordenes.filter(o => o.estado === 'Completado').length,
-    ingresoTotal: ordenes.reduce((sum, o) => sum + o.total, 0)
+    pendientes: ordenes.filter(o => o.estado === 'pendiente' || o.estado === 'Pendiente').length,
+    enProceso: ordenes.filter(o => o.estado === 'En Proceso' || o.estado === 'En camino').length,
+    completadas: ordenes.filter(o => o.estado === 'Completado' || o.estado === 'Entregado').length,
+    ingresoTotal: ordenes.reduce((sum, o) => sum + (o.totalOrden || 0), 0)
   };
+
+  if (loading) {
+    return (
+      <div className="dashboard-wrapper center-align" style={{ paddingTop: '50px' }}>
+        <div className="preloader-wrapper active">
+          <div className="spinner-layer spinner-green-only">
+            <div className="circle-clipper left"><div className="circle"></div></div>
+            <div className="gap-patch"><div className="circle"></div></div>
+            <div className="circle-clipper right"><div className="circle"></div></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-wrapper">
@@ -201,7 +248,7 @@ export function Pedidos() {
                       id="busqueda"
                       value={busqueda}
                       onChange={(e) => setBusqueda(e.target.value)}
-                      placeholder="Buscar por ID, usuario, nombre o email..."
+                      placeholder="Buscar por ID, nombre o email..."
                     />
                   </div>
                 </div>
@@ -209,13 +256,7 @@ export function Pedidos() {
                   <div className="input-field" style={{ marginTop: 0 }}>
                     <select
                       value={filtroEstado}
-                      onChange={(e) => {
-                        setFiltroEstado(e.target.value);
-                        setTimeout(() => {
-                          const selects = document.querySelectorAll('select');
-                          window.M.FormSelect.init(selects);
-                        }, 0);
-                      }}
+                      onChange={(e) => setFiltroEstado(e.target.value)}
                     >
                       <option value="Todos">Todos los estados</option>
                       {estadosDisponibles.map(estado => (
@@ -243,16 +284,12 @@ export function Pedidos() {
             <div className="card-content">
               <div className="card-header">
                 <span className="card-title-admin">Listado de Pedidos</span>
-                <span className="dashboard-subtitle">
-                  {ordenesFiltradas.length} pedido{ordenesFiltradas.length !== 1 ? 's' : ''}
-                </span>
               </div>
-              
+
               <table className="responsive-table striped admin-table">
                 <thead>
                   <tr>
                     <th>ID Pedido</th>
-                    <th>ID Usuario</th>
                     <th>Cliente</th>
                     <th>Fecha</th>
                     <th>Productos</th>
@@ -262,81 +299,81 @@ export function Pedidos() {
                   </tr>
                 </thead>
                 <tbody>
-              {ordenesFiltradas.length === 0 ? (
-                <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
-                    {busqueda || filtroEstado !== 'Todos' 
-                      ? 'No se encontraron pedidos con los filtros aplicados'
-                      : 'No hay pedidos registrados'}
-                  </td>
-                </tr>
-              ) : (
-                ordenesFiltradas.map(orden => {
-                  const estadoStyle = getEstadoColor(orden.estado);
-                  return (
-                    <tr key={orden.id}>
-                      <td className="font-medium">
-                        #{orden.id}
-                      </td>
-                      <td>
-                        <code style={{ background: '#f8f9fa', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85em', color: '#7f8c8d' }}>
-                          {orden.id_usuario}
-                        </code>
-                      </td>
-                      <td>
-                        <div>
-                          <strong style={{ color: '#2c3e50' }}>{orden.shippingInfo.fullName}</strong>
-                          <br />
-                          <small className="dashboard-subtitle">{orden.shippingInfo.email}</small>
-                        </div>
-                      </td>
-                      <td className="dashboard-subtitle">
-                        {formatearFecha(orden.fecha)}
-                      </td>
-                      <td className="dashboard-subtitle">
-                        {orden.productos.length} producto{orden.productos.length !== 1 ? 's' : ''}
-                      </td>
-                      <td className="font-medium" style={{ color: '#27ae60' }}>
-                        ${orden.total.toLocaleString('es-CL')}
-                      </td>
-                      <td>
-                        <select
-                          value={orden.estado}
-                          onChange={(e) => handleCambiarEstado(orden.id, e.target.value)}
-                          style={{
-                            background: estadoStyle.bg,
-                            color: estadoStyle.color,
-                            border: 'none',
-                            padding: '6px 12px',
-                            borderRadius: '12px',
-                            fontWeight: '600',
-                            fontSize: '0.85em',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          {estadosDisponibles.map(estado => (
-                            <option key={estado} value={estado}>{estado}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        <button
-                          onClick={() => handleVerDetalle(orden)}
-                          className="btn-small btn-flat waves-effect"
-                        >
-                          <i className="material-icons" style={{ color: '#3498db' }}>visibility</i>
-                        </button>
+                  {ordenesFiltradas.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                        {busqueda || filtroEstado !== 'Todos'
+                          ? 'No se encontraron pedidos con los filtros aplicados'
+                          : 'No hay pedidos registrados'}
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                  ) : (
+                    ordenesFiltradas.map(orden => {
+                      const estadoStyle = getEstadoColor(orden.estado);
+                      return (
+                        <tr key={orden.idOrden}>
+                          <td className="font-medium">
+                            #{orden.idOrden}
+                          </td>
+                          <td>
+                            <div>
+                              <strong style={{ color: '#2c3e50' }}>
+                                {orden.usuario ? `${orden.usuario.nombre} ${orden.usuario.aPaterno || ''}` : 'Cliente'}
+                              </strong>
+                              <br />
+                              <small className="dashboard-subtitle">{orden.usuario ? orden.usuario.email : ''}</small>
+                            </div>
+                          </td>
+                          <td className="dashboard-subtitle">
+                            {formatearFecha(orden.fechaOrden)}
+                          </td>
+                          <td className="dashboard-subtitle">
+                            {orden.detalleOrden ? orden.detalleOrden.length : 0} producto(s)
+                          </td>
+                          <td className="font-medium" style={{ color: '#27ae60' }}>
+                            ${orden.totalOrden.toLocaleString('es-CL')}
+                          </td>
+                          <td>
+                            <select
+                              className="browser-default"
+                              value={orden.estado}
+                              onChange={(e) => handleCambiarEstado(orden.idOrden, e.target.value)}
+                              style={{
+                                background: estadoStyle.bg,
+                                color: estadoStyle.color,
+                                border: 'none',
+                                padding: '6px 12px',
+                                borderRadius: '12px',
+                                fontWeight: '600',
+                                fontSize: '0.85em',
+                                cursor: 'pointer',
+                                display: 'block',
+                                width: 'auto'
+                              }}
+                            >
+                              {estadosDisponibles.map(estado => (
+                                <option key={estado} value={estado}>{estado}</option>
+                              ))}
+                            </select>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <button
+                              onClick={() => handleVerDetalle(orden)}
+                              className="btn-small btn-flat waves-effect"
+                            >
+                              <i className="material-icons" style={{ color: '#3498db' }}>visibility</i>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
       {/* Modal de detalles */}
       <div id="detalleModal" className="modal" style={{ maxWidth: '900px', maxHeight: '90%' }}>
@@ -345,9 +382,9 @@ export function Pedidos() {
             <div className="modal-content">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                 <div>
-                  <h4 className="dashboard-title" style={{ marginBottom: '5px' }}>Pedido #{selectedOrden.id}</h4>
+                  <h4 className="dashboard-title" style={{ marginBottom: '5px' }}>Pedido #{selectedOrden.idOrden}</h4>
                   <p className="dashboard-subtitle">
-                    {formatearFecha(selectedOrden.fecha)}
+                    {formatearFecha(selectedOrden.fechaOrden)}
                   </p>
                 </div>
                 <div>
@@ -377,12 +414,18 @@ export function Pedidos() {
                       <p style={{ margin: '8px 0' }}>
                         <strong>ID Usuario:</strong><br />
                         <code style={{ background: '#fff', padding: '4px 8px', borderRadius: '4px' }}>
-                          {selectedOrden.id_usuario}
+                          {selectedOrden.idUsuario}
                         </code>
                       </p>
-                      <p style={{ margin: '8px 0' }}><strong>Nombre:</strong> {selectedOrden.shippingInfo.fullName}</p>
-                      <p style={{ margin: '8px 0' }}><strong>Email:</strong> {selectedOrden.shippingInfo.email}</p>
-                      <p style={{ margin: '8px 0' }}><strong>Teléfono:</strong> {selectedOrden.shippingInfo.phone}</p>
+                      <p style={{ margin: '8px 0' }}>
+                        <strong>Nombre:</strong> {selectedOrden.usuario ? `${selectedOrden.usuario.nombre} ${selectedOrden.usuario.aPaterno || ''}` : 'N/A'}
+                      </p>
+                      <p style={{ margin: '8px 0' }}>
+                        <strong>Email:</strong> {selectedOrden.usuario ? selectedOrden.usuario.email : 'N/A'}
+                      </p>
+                      <p style={{ margin: '8px 0' }}>
+                        <strong>Teléfono:</strong> {selectedOrden.usuario ? selectedOrden.usuario.telefono : 'N/A'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -395,10 +438,10 @@ export function Pedidos() {
                         <i className="material-icons" style={{ color: '#2E8B57' }}>local_shipping</i>
                         Dirección de Envío
                       </h6>
-                      <p style={{ margin: '8px 0' }}><strong>Dirección:</strong> {selectedOrden.shippingInfo.address}</p>
-                      <p style={{ margin: '8px 0' }}><strong>Ciudad:</strong> {selectedOrden.shippingInfo.city}</p>
-                      <p style={{ margin: '8px 0' }}><strong>Región:</strong> {selectedOrden.shippingInfo.region}</p>
-                      <p style={{ margin: '8px 0' }}><strong>Código Postal:</strong> {selectedOrden.shippingInfo.zipCode}</p>
+                      <p style={{ margin: '8px 0' }}>
+                        <i className="tiny material-icons" style={{ verticalAlign: 'middle', marginRight: '4px' }}>location_on</i>
+                        {selectedOrden.direccionEnvio || 'No especificada'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -408,7 +451,7 @@ export function Pedidos() {
               <div style={{ marginTop: '20px' }}>
                 <h6 style={{ color: '#2c3e50', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <i className="material-icons" style={{ color: '#2E8B57' }}>shopping_cart</i>
-                  Productos ({selectedOrden.productos.length})
+                  Productos ({selectedOrden.detalleOrden ? selectedOrden.detalleOrden.length : 0})
                 </h6>
                 <table className="striped">
                   <thead>
@@ -420,24 +463,15 @@ export function Pedidos() {
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedOrden.productos.map((producto, index) => (
+                    {selectedOrden.detalleOrden && selectedOrden.detalleOrden.map((detalle, index) => (
                       <tr key={index}>
                         <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {producto.imagen && (
-                              <img 
-                                src={producto.imagen} 
-                                alt={producto.nombre}
-                                style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
-                              />
-                            )}
-                            <strong>{producto.nombre}</strong>
-                          </div>
+                          <strong>{detalle.producto ? detalle.producto.nombreProducto : 'Producto'}</strong>
                         </td>
-                        <td>${producto.precio.toLocaleString('es-CL')}</td>
-                        <td>{producto.quantity}</td>
+                        <td>${detalle.precioUnitario ? detalle.precioUnitario.toLocaleString('es-CL') : 0}</td>
+                        <td>{detalle.cantidad}</td>
                         <td>
-                          <strong>${(producto.precio * producto.quantity).toLocaleString('es-CL')}</strong>
+                          <strong>${(detalle.precioUnitario * detalle.cantidad).toLocaleString('es-CL')}</strong>
                         </td>
                       </tr>
                     ))}
@@ -448,48 +482,16 @@ export function Pedidos() {
               {/* Resumen de costos */}
               <div style={{ marginTop: '20px', borderTop: '2px solid #e0e0e0', paddingTop: '20px' }}>
                 <div style={{ maxWidth: '400px', marginLeft: 'auto' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <span>Subtotal:</span>
-                    <strong>${selectedOrden.subtotal.toLocaleString('es-CL')}</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <span>Envío:</span>
-                    <strong>${selectedOrden.envio.toLocaleString('es-CL')}</strong>
-                  </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2em', borderTop: '2px solid #2E8B57', paddingTop: '10px' }}>
                     <strong>Total:</strong>
-                    <strong style={{ color: '#2E8B57' }}>${selectedOrden.total.toLocaleString('es-CL')}</strong>
+                    <strong style={{ color: '#2E8B57' }}>${selectedOrden.totalOrden.toLocaleString('es-CL')}</strong>
                   </div>
                 </div>
               </div>
 
-              {/* Notas */}
-              <div style={{ marginTop: '20px' }}>
-                <h6 style={{ color: '#2c3e50', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <i className="material-icons" style={{ color: '#2E8B57' }}>note</i>
-                  Notas del Pedido
-                </h6>
-                <div className="input-field">
-                  <textarea
-                    id="notas"
-                    className="materialize-textarea"
-                    value={selectedOrden.notas}
-                    onChange={(e) => handleActualizarNotas(selectedOrden.id, e.target.value)}
-                    placeholder="Agregar notas sobre este pedido..."
-                    style={{ minHeight: '80px', border: '1px solid #e0e0e0', borderRadius: '4px', padding: '10px' }}
-                  />
-                </div>
-              </div>
             </div>
 
-            <div className="modal-footer" style={{ background: '#f8f9fa', display: 'flex', justifyContent: 'space-between' }}>
-              <button
-                onClick={() => handleEliminarOrden(selectedOrden.id)}
-                className="btn waves-effect waves-light red"
-              >
-                <i className="material-icons left">delete</i>
-                Eliminar Pedido
-              </button>
+            <div className="modal-footer" style={{ background: '#f8f9fa', display: 'flex', justifyContent: 'flex-end' }}>
               <button
                 className="modal-close btn waves-effect waves-light"
                 style={{ background: '#2E8B57' }}

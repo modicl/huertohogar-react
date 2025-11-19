@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './Checkout.css';
 import { Header } from './Header.jsx';
 import logoNavbar from '../assets/images/logo_navbar.png';
+import { useAuth } from '../context/AuthContext';
 
 function HeaderSoloLogo() {
     return (
@@ -17,6 +19,7 @@ function HeaderSoloLogo() {
 export function Checkout({ cartHuerto, setCartHuerto }) {
     const navigate = useNavigate();
     const selectRef = useRef(null);
+    const { user } = useAuth();
 
     // Estado para información de envío
     const [shippingInfo, setShippingInfo] = useState({
@@ -85,20 +88,8 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
         }
     }, []);
 
-    // Función para agregar productos de prueba
-    const addTestProducts = () => {
-        const testProducts = [
-            { id: 101, nombre: "Tomate Limachino", precio: 2800, quantity: 2, imagen: "/images/tomate.jpg", categoria: "Verduras" },
-            { id: 102, nombre: "Albahaca Fresca", precio: 1500, quantity: 1, imagen: "/images/albahaca.jpg", categoria: "Hierbas" },
-            { id: 103, nombre: "Pimiento Rojo", precio: 2200, quantity: 3, imagen: "/images/pimiento.jpg", categoria: "Verduras" },
-        ];
-        setCartHuerto(testProducts);
-        localStorage.setItem('cartHuerto', JSON.stringify(testProducts));
-        console.log('Productos de prueba agregados al carrito.');
-    };
-
     // Función para procesar la compra
-    const handlePurchase = (e) => {
+    const handlePurchase = async (e) => {
         e.preventDefault();
 
         if (!cartHuerto || cartHuerto.length === 0) {
@@ -114,38 +105,50 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
             return;
         }
 
-        // Crear nueva orden
-        const nuevaOrden = {
-            id: Date.now(),
-            id_usuario: 'USR-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-            fecha: new Date().toISOString(),
-            estado: 'Pendiente',
-            productos: cartHuerto,
-            shippingInfo: shippingInfo,
-            subtotal: calculateSubtotal(),
-            envio: calculateShipping(),
-            total: calculateTotal(),
-            notas: ''
-        };
+        try {
+            // Preparar detalle de la orden
+            const detalleOrden = cartHuerto.map(item => ({
+                idProducto: Number(item.idProducto || item.id),
+                cantidad: Number(item.quantity),
+                precioUnitario: Number(item.precioProducto || item.precio)
+            }));
 
-        // Guardar la orden en localStorage
-        const ordenesExistentes = JSON.parse(localStorage.getItem('ordenes') || '[]');
-        const nuevasOrdenes = [...ordenesExistentes, nuevaOrden];
-        localStorage.setItem('ordenes', JSON.stringify(nuevasOrdenes));
+            console.log('User context:', user);
+            const userId = user && (user.id || user.idUsuario) ? Number(user.id || user.idUsuario) : 1;
 
-        console.log('Orden creada exitosamente:', nuevaOrden);
+            // Construir objeto para la API
+            const ordenData = {
+                idUsuario: userId,
+                fechaOrden: new Date().toISOString().split('T')[0], // Formato YYYY-MM-DD
+                estado: "pendiente",
+                totalOrden: Number(calculateTotal()),
+                direccionEnvio: `${shippingInfo.address}, ${shippingInfo.city}, ${shippingInfo.region}`,
+                detalleOrden: detalleOrden
+            };
 
-        // Navegar a la boleta con los datos de la compra
-        navigate('/boleta', {
-            state: {
-                cartItems: cartHuerto,
-                shippingInfo: shippingInfo
-            }
-        });
+            console.log('Enviando orden:', ordenData);
 
-        // Limpiar el carrito después de navegar a la boleta
-        setCartHuerto([]);
-        localStorage.removeItem('cartHuerto');
+            const response = await axios.post('https://hh-ordenes-backend-barnt.ondigitalocean.app/api/v1/ordenes', ordenData);
+
+            console.log('Orden creada exitosamente:', response.data);
+
+            // Navegar a la boleta con los datos de la compra
+            navigate('/boleta', {
+                state: {
+                    cartItems: cartHuerto,
+                    shippingInfo: shippingInfo,
+                    ordenId: response.data.id // Asumiendo que la API devuelve el ID
+                }
+            });
+
+            // Limpiar el carrito después de navegar a la boleta
+            setCartHuerto([]);
+            localStorage.removeItem('cartHuerto');
+
+        } catch (error) {
+            console.error('Error al crear la orden:', error);
+            alert('Hubo un error al procesar tu compra. Por favor intenta nuevamente.');
+        }
     };
 
     // Función para actualizar cantidad de un producto
@@ -203,9 +206,6 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
                                     <a href="/productos" className="btn" style={{ backgroundColor: '#2E8B57', marginRight: '10px' }}>
                                         Ver Productos
                                     </a>
-                                    <button onClick={addTestProducts} className="btn blue">
-                                        Agregar Productos de Prueba
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -253,66 +253,66 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
                                     const categoria = typeof item.categoria === 'object' && item.categoria !== null
                                         ? item.categoria.nombreCategoria || 'Sin categoría'
                                         : item.categoria || 'Sin categoría';
-                                    
+
                                     return (
-                                    <div key={itemId} className="row cart-item">
-                                        <div className="col s3">
-                                            <img
-                                                src={imagen}
-                                                alt={nombre}
-                                                className="cart-item-image"
-                                                onError={(e) => {
-                                                    e.target.style.display = 'none';
-                                                    e.target.nextSibling.style.display = 'flex';
-                                                }}
-                                            />
-                                            <div className="cart-item-placeholder">
-                                                🥬 Producto
+                                        <div key={itemId} className="row cart-item">
+                                            <div className="col s3">
+                                                <img
+                                                    src={imagen}
+                                                    alt={nombre}
+                                                    className="cart-item-image"
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        e.target.nextSibling.style.display = 'flex';
+                                                    }}
+                                                />
+                                                <div className="cart-item-placeholder">
+                                                    🥬 Producto
+                                                </div>
+                                            </div>
+                                            <div className="col s6">
+                                                <h6 className="cart-item-name">
+                                                    {nombre}
+                                                </h6>
+                                                <p className="cart-item-category">
+                                                    Categoría: {categoria}
+                                                </p>
+                                                <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
+                                                    <button
+                                                        className="btn-small"
+                                                        style={{ backgroundColor: '#ff6b6b', marginRight: '10px' }}
+                                                        onClick={() => updateQuantity(itemId, item.quantity - 1)}
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span style={{ margin: '0 15px', fontWeight: 'bold' }}>
+                                                        {item.quantity}
+                                                    </span>
+                                                    <button
+                                                        className="btn-small"
+                                                        style={{ backgroundColor: '#2E8B57', marginRight: '10px' }}
+                                                        onClick={() => updateQuantity(itemId, item.quantity + 1)}
+                                                    >
+                                                        +
+                                                    </button>
+                                                    <button
+                                                        className="btn-small red"
+                                                        onClick={() => removeFromCart(itemId)}
+                                                        title="Eliminar producto"
+                                                    >
+                                                        <i className="material-icons">delete</i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="col s3 right-align">
+                                                <p className="cart-item-price">
+                                                    ${(precio * item.quantity).toLocaleString()}
+                                                </p>
+                                                <p className="cart-item-unit-price">
+                                                    ${precio.toLocaleString()} c/u
+                                                </p>
                                             </div>
                                         </div>
-                                        <div className="col s6">
-                                            <h6 className="cart-item-name">
-                                                {nombre}
-                                            </h6>
-                                            <p className="cart-item-category">
-                                                Categoría: {categoria}
-                                            </p>
-                                            <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
-                                                <button
-                                                    className="btn-small"
-                                                    style={{ backgroundColor: '#ff6b6b', marginRight: '10px' }}
-                                                    onClick={() => updateQuantity(itemId, item.quantity - 1)}
-                                                >
-                                                    -
-                                                </button>
-                                                <span style={{ margin: '0 15px', fontWeight: 'bold' }}>
-                                                    {item.quantity}
-                                                </span>
-                                                <button
-                                                    className="btn-small"
-                                                    style={{ backgroundColor: '#2E8B57', marginRight: '10px' }}
-                                                    onClick={() => updateQuantity(itemId, item.quantity + 1)}
-                                                >
-                                                    +
-                                                </button>
-                                                <button
-                                                    className="btn-small red"
-                                                    onClick={() => removeFromCart(itemId)}
-                                                    title="Eliminar producto"
-                                                >
-                                                    <i className="material-icons">delete</i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div className="col s3 right-align">
-                                            <p className="cart-item-price">
-                                                ${(precio * item.quantity).toLocaleString()}
-                                            </p>
-                                            <p className="cart-item-unit-price">
-                                                ${precio.toLocaleString()} c/u
-                                            </p>
-                                        </div>
-                                    </div>
                                     );
                                 })}
 
