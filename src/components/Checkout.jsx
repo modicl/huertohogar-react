@@ -44,7 +44,10 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
     // Función para calcular subtotal
     const calculateSubtotal = () => {
         if (!cartHuerto || cartHuerto.length === 0) return 0;
-        return cartHuerto.reduce((total, item) => total + (item.precio * item.quantity), 0);
+        return cartHuerto.reduce((total, item) => {
+            const precio = item.precioProducto || item.precio || 0;
+            return total + (precio * item.quantity);
+        }, 0);
     };
 
     // Función para calcular envío
@@ -152,11 +155,12 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
             return;
         }
 
-        const updatedCart = cartHuerto.map(item =>
-            item.id === productId
+        const updatedCart = cartHuerto.map(item => {
+            const itemId = item.idProducto || item.id;
+            return itemId === productId
                 ? { ...item, quantity: newQuantity }
-                : item
-        );
+                : item;
+        });
 
         setCartHuerto(updatedCart);
         localStorage.setItem('cartHuerto', JSON.stringify(updatedCart));
@@ -164,7 +168,10 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
 
     // Función para remover producto del carrito
     const removeFromCart = (productId) => {
-        const updatedCart = cartHuerto.filter(item => item.id !== productId);
+        const updatedCart = cartHuerto.filter(item => {
+            const itemId = item.idProducto || item.id;
+            return itemId !== productId;
+        });
         setCartHuerto(updatedCart);
         localStorage.setItem('cartHuerto', JSON.stringify(updatedCart));
     };
@@ -238,12 +245,21 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
                                     Productos en tu carrito ({cartHuerto.length})
                                 </h5>
 
-                                {cartHuerto.map((item) => (
-                                    <div key={item.id} className="row cart-item">
+                                {cartHuerto.map((item) => {
+                                    const precio = item.precioProducto || item.precio || 0;
+                                    const nombre = item.nombreProducto || item.nombre || 'Producto';
+                                    const imagen = item.imagenUrl || item.imagen || '';
+                                    const itemId = item.idProducto || item.id;
+                                    const categoria = typeof item.categoria === 'object' && item.categoria !== null
+                                        ? item.categoria.nombreCategoria || 'Sin categoría'
+                                        : item.categoria || 'Sin categoría';
+                                    
+                                    return (
+                                    <div key={itemId} className="row cart-item">
                                         <div className="col s3">
                                             <img
-                                                src={item.imagen}
-                                                alt={item.nombre}
+                                                src={imagen}
+                                                alt={nombre}
                                                 className="cart-item-image"
                                                 onError={(e) => {
                                                     e.target.style.display = 'none';
@@ -256,16 +272,16 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
                                         </div>
                                         <div className="col s6">
                                             <h6 className="cart-item-name">
-                                                {item.nombre}
+                                                {nombre}
                                             </h6>
                                             <p className="cart-item-category">
-                                                Categoría: {item.categoria}
+                                                Categoría: {categoria}
                                             </p>
                                             <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
                                                 <button
                                                     className="btn-small"
                                                     style={{ backgroundColor: '#ff6b6b', marginRight: '10px' }}
-                                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                    onClick={() => updateQuantity(itemId, item.quantity - 1)}
                                                 >
                                                     -
                                                 </button>
@@ -275,13 +291,13 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
                                                 <button
                                                     className="btn-small"
                                                     style={{ backgroundColor: '#2E8B57', marginRight: '10px' }}
-                                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                    onClick={() => updateQuantity(itemId, item.quantity + 1)}
                                                 >
                                                     +
                                                 </button>
                                                 <button
                                                     className="btn-small red"
-                                                    onClick={() => removeFromCart(item.id)}
+                                                    onClick={() => removeFromCart(itemId)}
                                                     title="Eliminar producto"
                                                 >
                                                     <i className="material-icons">delete</i>
@@ -290,14 +306,15 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
                                         </div>
                                         <div className="col s3 right-align">
                                             <p className="cart-item-price">
-                                                ${(item.precio * item.quantity).toLocaleString()}
+                                                ${(precio * item.quantity).toLocaleString()}
                                             </p>
                                             <p className="cart-item-unit-price">
-                                                ${item.precio.toLocaleString()} c/u
+                                                ${precio.toLocaleString()} c/u
                                             </p>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
 
                                 {/* Información de envío */}
                                 <div className="shipping-form">

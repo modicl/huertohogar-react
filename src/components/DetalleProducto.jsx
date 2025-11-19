@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { productos } from '../data/productos.jsx';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { API_URLS } from '../config/api';
 
 export function DetalleProducto() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const producto = productos.find(p => p.id === Number(id));
+  const [producto, setProducto] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   
   // Estados para comentarios
@@ -18,16 +20,39 @@ export function DetalleProducto() {
     estrellas: 5
   });
 
-  // Cargar comentarios del producto desde localStorage
+  // Cargar producto desde la API
   useEffect(() => {
-    const storedProductos = JSON.parse(localStorage.getItem('productos') || JSON.stringify(productos));
-    const currentProduct = storedProductos.find(p => p.id === Number(id));
-    if (currentProduct && currentProduct.comentarios) {
-      setComentarios(currentProduct.comentarios);
+    const fetchProducto = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URLS.productos}/${id}`);
+        if (!response.ok) {
+          throw new Error('Producto no encontrado');
+        }
+        const data = await response.json();
+        setProducto(data);
+      } catch (err) {
+        setError(err.message);
+        console.error('Error al cargar el producto:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchProducto();
     }
   }, [id]);
 
-  // Función para manejar envío de comentario
+  // Cargar comentarios del producto desde localStorage
+  useEffect(() => {
+    if (producto) {
+      const storedComentarios = localStorage.getItem(`comentarios-${id}`);
+      if (storedComentarios) {
+        setComentarios(JSON.parse(storedComentarios));
+      }
+    }
+  }, [id, producto]);  // Función para manejar envío de comentario
   const handleSubmitComentario = (e) => {
     e.preventDefault();
     
@@ -41,7 +66,7 @@ export function DetalleProducto() {
       alert('Por favor escribe un comentario');
       return;
     }
-    
+
     if (nuevoComentario.comentario.length > 100) {
       alert('El comentario no puede superar los 100 caracteres');
       return;
@@ -56,39 +81,24 @@ export function DetalleProducto() {
       fecha: new Date().toISOString()
     };
 
-    // Obtener productos del localStorage o usar los productos por defecto
-    const storedProductos = JSON.parse(localStorage.getItem('productos') || JSON.stringify(productos));
+    // Agregar el nuevo comentario al inicio del array
+    const nuevosComentarios = [comentarioNuevo, ...comentarios];
     
-    // Encontrar el índice del producto actual
-    const productoIndex = storedProductos.findIndex(p => p.id === Number(id));
+    // Guardar en localStorage con la clave específica del producto
+    localStorage.setItem(`comentarios-${id}`, JSON.stringify(nuevosComentarios));
     
-    if (productoIndex !== -1) {
-      // Asegurar que existe el array de comentarios
-      if (!storedProductos[productoIndex].comentarios) {
-        storedProductos[productoIndex].comentarios = [];
-      }
-      
-      // Agregar el nuevo comentario al inicio del array
-      storedProductos[productoIndex].comentarios.unshift(comentarioNuevo);
-      
-      // Guardar en localStorage
-      localStorage.setItem('productos', JSON.stringify(storedProductos));
-      
-      // Actualizar el estado de comentarios para re-renderizar
-      setComentarios(storedProductos[productoIndex].comentarios);
-      
-      // Resetear formulario
-      setNuevoComentario({
-        usuario: '',
-        comentario: '',
-        estrellas: 5
-      });
-      
-      // Mostrar confirmación
-      alert('¡Gracias por tu opinión! Tu comentario ha sido publicado.');
-    } else {
-      alert('Error al guardar el comentario. Por favor, intenta de nuevo.');
-    }
+    // Actualizar el estado de comentarios para re-renderizar
+    setComentarios(nuevosComentarios);
+    
+    // Resetear formulario
+    setNuevoComentario({
+      usuario: '',
+      comentario: '',
+      estrellas: 5
+    });
+    
+    // Mostrar confirmación
+    alert('¡Gracias por tu opinión! Tu comentario ha sido publicado.');
   };
 
   // Función para renderizar estrellas
@@ -123,14 +133,14 @@ export function DetalleProducto() {
   // Función para actualizar cantidad
   const handleQuantityChange = (value) => {
     const newValue = parseInt(value) || 1;
-    if (newValue >= 1 && newValue <= (producto?.stock || 1)) {
+    if (newValue >= 1 && newValue <= (producto?.stockProducto || 1)) {
       setQuantity(newValue);
     }
   };
 
   // Función para incrementar/decrementar
   const incrementQuantity = () => {
-    if (quantity < (producto?.stock || 1)) {
+    if (quantity < (producto?.stockProducto || 1)) {
       setQuantity(quantity + 1);
     }
   };
@@ -146,19 +156,29 @@ export function DetalleProducto() {
     if (!producto) return;
 
     const currentCart = JSON.parse(localStorage.getItem('cartHuerto') || '[]');
-    const existingProductIndex = currentCart.findIndex(item => item.id === producto.id);
+    const existingProductIndex = currentCart.findIndex(item => {
+      const itemId = item.idProducto || item.id;
+      return itemId === producto.idProducto;
+    });
     
     if (existingProductIndex >= 0) {
       currentCart[existingProductIndex].quantity += quantity;
     } else {
       currentCart.push({
-        ...producto,
+        idProducto: producto.idProducto,
+        nombreProducto: producto.nombreProducto,
+        precioProducto: producto.precioProducto,
+        imagenUrl: producto.imagenUrl,
+        categoria: producto.categoria,
+        stockProducto: producto.stockProducto,
+        paisOrigen: producto.paisOrigen,
+        descripcionProducto: producto.descripcionProducto,
         quantity: quantity
       });
     }
     
     localStorage.setItem('cartHuerto', JSON.stringify(currentCart));
-    alert(`Se agregaron ${quantity} unidad(es) de ${producto.nombre} al carrito`);
+    alert(`Se agregaron ${quantity} unidad(es) de ${producto.nombreProducto} al carrito`);
     setQuantity(1);
   };
 
@@ -168,7 +188,21 @@ export function DetalleProducto() {
     navigate('/checkout');
   };
 
-  if (!producto) {
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main className="container" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center' }}>
+            <h2 style={{ color: '#8B4513', marginBottom: '20px' }}>Cargando producto...</h2>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (error || !producto) {
     return (
       <>
         <Header />
@@ -195,12 +229,11 @@ export function DetalleProducto() {
           <span style={{ margin: '0 8px', color: '#999' }}>/</span>
           <Link to="/productos" style={{ color: '#2E8B57', textDecoration: 'none' }}>Productos</Link>
           <span style={{ margin: '0 8px', color: '#999' }}>/</span>
-          <span style={{ color: '#666' }}>{producto.nombre}</span>
+          <span style={{ color: '#666' }}>{producto.nombreProducto}</span>
         </div>
 
         {/* Contenedor principal del producto */}
         <div className="row" style={{ background: '#fff', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
-          
           {/* Columna izquierda - Imagen */}
           <div className="col s12 m6" style={{ padding: '40px' }}>
             <div style={{ 
@@ -213,8 +246,8 @@ export function DetalleProducto() {
               minHeight: '400px'
             }}>
               <img 
-                src={producto.imagen} 
-                alt={producto.nombre} 
+                src={producto.imagenUrl} 
+                alt={producto.nombreProducto} 
                 style={{ 
                   width: '100%', 
                   maxWidth: '350px',
@@ -228,7 +261,6 @@ export function DetalleProducto() {
 
           {/* Columna derecha - Información */}
           <div className="col s12 m6" style={{ padding: '40px' }}>
-            
             {/* Categoría */}
             <div style={{ 
               display: 'inline-block',
@@ -242,7 +274,7 @@ export function DetalleProducto() {
               textTransform: 'uppercase',
               letterSpacing: '0.5px'
             }}>
-              {producto.categoria}
+              {producto.categoria?.nombreCategoria}
             </div>
 
             {/* Nombre del producto */}
@@ -254,7 +286,7 @@ export function DetalleProducto() {
               fontWeight: '700',
               lineHeight: '1.2'
             }}>
-              {producto.nombre}
+              {producto.nombreProducto}
             </h1>
 
             {/* Precio */}
@@ -264,7 +296,7 @@ export function DetalleProducto() {
               fontWeight: 'bold',
               marginBottom: '20px'
             }}>
-              ${producto.precio.toLocaleString('es-CL')}
+              ${producto.precioProducto?.toLocaleString('es-CL')}
             </div>
 
             {/* Descripción */}
@@ -276,7 +308,7 @@ export function DetalleProducto() {
               paddingBottom: '24px',
               borderBottom: '1px solid #e0e0e0'
             }}>
-              {producto.descripcion}
+              {producto.descripcionProducto}
             </p>
 
             {/* Información adicional */}
@@ -284,19 +316,17 @@ export function DetalleProducto() {
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
                 <i className="material-icons" style={{ color: '#2E8B57', marginRight: '10px' }}>inventory_2</i>
                 <span style={{ color: '#666', fontSize: '1em' }}>
-                  <strong>Stock disponible:</strong> {producto.stock} unidades
+                  <strong>Stock disponible:</strong> {producto.stockProducto} unidades
                 </span>
               </div>
-              
-              {producto.origen && (
+              {producto.paisOrigen?.nombre && (
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
                   <i className="material-icons" style={{ color: '#2E8B57', marginRight: '10px' }}>place</i>
                   <span style={{ color: '#666', fontSize: '1em' }}>
-                    <strong>Origen:</strong> {producto.origen}
+                    <strong>Origen:</strong> {producto.paisOrigen.nombre}
                   </span>
                 </div>
               )}
-
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <i className="material-icons" style={{ color: '#2E8B57', marginRight: '10px' }}>local_shipping</i>
                 <span style={{ color: '#666', fontSize: '1em' }}>
@@ -345,11 +375,10 @@ export function DetalleProducto() {
                 >
                   -
                 </button>
-                
                 <input
                   type="number"
                   min="1"
-                  max={producto.stock}
+                  max={producto.stockProducto}
                   value={quantity}
                   onChange={(e) => handleQuantityChange(e.target.value)}
                   style={{
@@ -362,7 +391,6 @@ export function DetalleProducto() {
                     fontWeight: '600'
                   }}
                 />
-                
                 <button
                   onClick={incrementQuantity}
                   style={{
@@ -391,9 +419,8 @@ export function DetalleProducto() {
                 >
                   +
                 </button>
-
                 <span style={{ marginLeft: '10px', color: '#999', fontSize: '0.9em' }}>
-                  (Máx: {producto.stock})
+                  (Máx: {producto.stockProducto})
                 </span>
               </div>
             </div>
@@ -426,7 +453,6 @@ export function DetalleProducto() {
                 <i className="material-icons">shopping_cart</i>
                 Agregar al Carrito
               </button>
-
               <button
                 onClick={buyNow}
                 style={{
@@ -454,7 +480,6 @@ export function DetalleProducto() {
                 Comprar Ahora
               </button>
             </div>
-
             {/* Información de garantía/confianza */}
             <div style={{ 
               background: '#f8f8f8', 
@@ -471,7 +496,6 @@ export function DetalleProducto() {
                 <span style={{ fontSize: '0.9em', color: '#666' }}>Compra segura garantizada</span>
               </div>
             </div>
-
           </div>
         </div>
 
