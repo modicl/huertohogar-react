@@ -78,6 +78,11 @@ export function Nosotros() {
                 <p>Cristobal Faundez</p>
                 <span>Developer</span>
               </div>
+              <div className="team-member">
+                <div className="avatar-circle" style={{background: '#AB47BC'}}>JR</div>
+                <p>Joaquin Reyes</p>
+                <span>Developer</span>
+              </div>
             </div>
           </div>
 
