@@ -18,6 +18,7 @@ export function PerfilUsuario() {
       
       setLoadingOrdenes(true);
       try {
+        console.log('Intentando cargar órdenes con token:', token.substring(0, 10) + '...');
         const response = await axios.get(`${API_URLS.ordenes}/mis-ordenes`, {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -33,8 +34,15 @@ export function PerfilUsuario() {
         }
       } catch (error) {
         console.error('Error al cargar órdenes:', error);
+        console.error('Detalles del error:', error.response?.data);
+        
+        let errorMsg = 'Error al cargar tus órdenes';
+        if (error.response?.status === 500) {
+            errorMsg = 'Error interno del servidor al obtener órdenes. Por favor intenta más tarde.';
+        }
+        
         if (window.M) {
-          window.M.toast({ html: 'Error al cargar tus órdenes', classes: 'red' });
+          window.M.toast({ html: errorMsg, classes: 'red' });
         }
       } finally {
         setLoadingOrdenes(false);
