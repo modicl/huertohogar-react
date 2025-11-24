@@ -69,8 +69,10 @@ export function Boleta({ cartItems: propCartItems, shippingInfo: propShippingInf
 
   const { date, time } = getCurrentDateTime();
 
-  // Número de boleta aleatorio
-  const boletaNumber = Math.floor(Math.random() * 1000000).toString().padStart(7, '0');
+  // Número de boleta (usar ID de orden si existe, sino generar aleatorio)
+  const boletaNumber = location.state?.orderId 
+    ? location.state.orderId.toString().padStart(7, '0') 
+    : Math.floor(Math.random() * 1000000).toString().padStart(7, '0');
 
   const handlePrint = () => {
     window.print();

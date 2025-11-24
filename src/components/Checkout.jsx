@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { API_URLS } from '../config/api.js';
 import './Checkout.css';
 import { Header } from './Header.jsx';
+import { useAuth } from '../context/AuthContext';
 import logoNavbar from '../assets/images/logo_navbar.png';
 
 function HeaderSoloLogo() {
@@ -16,22 +19,18 @@ function HeaderSoloLogo() {
 
 export function Checkout({ cartHuerto, setCartHuerto }) {
     const navigate = useNavigate();
+    const { user, token } = useAuth();
     const selectRef = useRef(null);
 
-    // Estado para información de envío
-    const [shippingInfo, setShippingInfo] = useState({
-        fullName: '',
-        email: '',
-        phone: '',
-        address: '',
-        city: '',
-        region: '',
-        zipCode: ''
-    });
-
-    // Cargar carrito del localStorage al montar el componente
+    // Función para calcular subtotal
     useEffect(() => {
         const loadCart = () => {
+            // Verificar que el usuario esté autenticado
+            if (!token) {
+                navigate('/registro');
+                return;
+            }
+
             const storedCart = JSON.parse(localStorage.getItem('cartHuerto') || '[]');
             if (storedCart && storedCart.length > 0) {
                 setCartHuerto(storedCart);
@@ -39,7 +38,12 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
         };
 
         loadCart();
-    }, [setCartHuerto]);
+    }, [setCartHuerto, token, navigate]);
+
+    // Inicializar la información de envío con los datos del usuario autenticado
+    useEffect(() => {
+        // Los datos se usan directamente del user autenticado
+    }, [user]);
 
     // Función para calcular subtotal
     const calculateSubtotal = () => {
@@ -60,15 +64,6 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
         return calculateSubtotal() + calculateShipping();
     };
 
-    // Función para manejar cambios en el formulario
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setShippingInfo(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
     // Inicializar select de Materialize
     useEffect(() => {
         if (window.M && selectRef.current) {
@@ -85,20 +80,8 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
         }
     }, []);
 
-    // Función para agregar productos de prueba
-    const addTestProducts = () => {
-        const testProducts = [
-            { id: 101, nombre: "Tomate Limachino", precio: 2800, quantity: 2, imagen: "/images/tomate.jpg", categoria: "Verduras" },
-            { id: 102, nombre: "Albahaca Fresca", precio: 1500, quantity: 1, imagen: "/images/albahaca.jpg", categoria: "Hierbas" },
-            { id: 103, nombre: "Pimiento Rojo", precio: 2200, quantity: 3, imagen: "/images/pimiento.jpg", categoria: "Verduras" },
-        ];
-        setCartHuerto(testProducts);
-        localStorage.setItem('cartHuerto', JSON.stringify(testProducts));
-        console.log('Productos de prueba agregados al carrito.');
-    };
-
     // Función para procesar la compra
-    const handlePurchase = (e) => {
+    const handlePurchase = async (e) => {
         e.preventDefault();
 
         if (!cartHuerto || cartHuerto.length === 0) {
@@ -106,46 +89,69 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
             return;
         }
 
-        // Validar que todos los campos del formulario estén completos
-        if (!shippingInfo.fullName || !shippingInfo.email || !shippingInfo.phone ||
-            !shippingInfo.address || !shippingInfo.city || !shippingInfo.region ||
-            !shippingInfo.zipCode) {
-            alert('Por favor completa todos los campos de envío');
+        // Verificar que el usuario esté autenticado con token
+        if (!token) {
+            alert('Debes estar registrado para finalizar la compra');
+            navigate('/registro');
             return;
         }
 
-        // Crear nueva orden
-        const nuevaOrden = {
-            id: Date.now(),
-            id_usuario: 'USR-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-            fecha: new Date().toISOString(),
-            estado: 'Pendiente',
-            productos: cartHuerto,
-            shippingInfo: shippingInfo,
-            subtotal: calculateSubtotal(),
-            envio: calculateShipping(),
-            total: calculateTotal(),
-            notas: ''
-        };
+        try {
+            // Construir el body para la API según el formato requerido
+            const orderBody = {
+                idUsuario: user.idUsuario,
+                fechaOrden: new Date().toISOString().split('T')[0], // Formato YYYY-MM-DD
+                estado: "pendiente",
+                totalOrden: calculateTotal(),
+                direccionEnvio: user.direccion || "Dirección no registrada",
+                detalleOrden: cartHuerto.map(item => ({
+                    idProducto: item.id || item.idProducto,
+                    cantidad: item.quantity,
+                    precioUnitario: item.precio || item.precioProducto
+                }))
+            };
 
-        // Guardar la orden en localStorage
-        const ordenesExistentes = JSON.parse(localStorage.getItem('ordenes') || '[]');
-        const nuevasOrdenes = [...ordenesExistentes, nuevaOrden];
-        localStorage.setItem('ordenes', JSON.stringify(nuevasOrdenes));
+            console.log('Enviando orden al backend:', orderBody);
 
-        console.log('Orden creada exitosamente:', nuevaOrden);
+            // Realizar la petición POST con el token Bearer
+            const response = await axios.post(API_URLS.ordenes, orderBody, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
 
-        // Navegar a la boleta con los datos de la compra
-        navigate('/boleta', {
-            state: {
-                cartItems: cartHuerto,
-                shippingInfo: shippingInfo
+            if (response.status === 200 || response.status === 201) {
+                console.log('Orden creada exitosamente en BD:', response.data);
+
+                // Datos de envío para la boleta
+                const orderShippingInfo = {
+                    fullName: `${user.nombre || ''} ${user.aPaterno || ''}`.trim(),
+                    email: user.email || '',
+                    phone: user.telefono || '',
+                    address: user.direccion || '',
+                    city: '',
+                    region: user.idRegion || '',
+                    zipCode: ''
+                };
+
+                // Navegar a la boleta con los datos de la compra
+                navigate('/boleta', {
+                    state: {
+                        cartItems: cartHuerto,
+                        shippingInfo: orderShippingInfo,
+                        orderId: response.data.idOrden || Date.now() // Usar ID del backend si viene
+                    }
+                });
+
+                // Limpiar el carrito después de navegar a la boleta
+                setCartHuerto([]);
+                localStorage.removeItem('cartHuerto');
             }
-        });
-
-        // Limpiar el carrito después de navegar a la boleta
-        setCartHuerto([]);
-        localStorage.removeItem('cartHuerto');
+        } catch (error) {
+            console.error('Error al crear la orden:', error);
+            alert('Hubo un error al procesar tu compra. Por favor intenta nuevamente.');
+        }
     };
 
     // Función para actualizar cantidad de un producto
@@ -203,9 +209,6 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
                                     <a href="/productos" className="btn" style={{ backgroundColor: '#2E8B57', marginRight: '10px' }}>
                                         Ver Productos
                                     </a>
-                                    <button onClick={addTestProducts} className="btn blue">
-                                        Agregar Productos de Prueba
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -316,125 +319,33 @@ export function Checkout({ cartHuerto, setCartHuerto }) {
                                     );
                                 })}
 
-                                {/* Información de envío */}
+                                {/* Información de envío - Desde perfil del usuario */}
                                 <div className="shipping-form">
                                     <h5 className="checkout-subsection-title">
                                         Información de Envío
                                     </h5>
 
-                                    <form onSubmit={handlePurchase}>
-                                        <div className="row">
-                                            <div className="input-field col s12 m6">
-                                                <input
-                                                    id="fullName"
-                                                    name="fullName"
-                                                    type="text"
-                                                    className="validate"
-                                                    required
-                                                    value={shippingInfo.fullName}
-                                                    onChange={handleInputChange}
-                                                />
-                                                <label htmlFor="fullName">Nombre Completo</label>
-                                            </div>
-                                            <div className="input-field col s12 m6">
-                                                <input
-                                                    id="email"
-                                                    name="email"
-                                                    type="email"
-                                                    className="validate"
-                                                    required
-                                                    value={shippingInfo.email}
-                                                    onChange={handleInputChange}
-                                                />
-                                                <label htmlFor="email">Email</label>
-                                            </div>
-                                        </div>
-
-                                        <div className="row">
-                                            <div className="input-field col s12 m6">
-                                                <input
-                                                    id="phone"
-                                                    name="phone"
-                                                    type="tel"
-                                                    className="validate"
-                                                    required
-                                                    value={shippingInfo.phone}
-                                                    onChange={handleInputChange}
-                                                />
-                                                <label htmlFor="phone">Teléfono</label>
-                                            </div>
-                                            <div className="input-field col s12 m6">
-                                                <input
-                                                    id="zipCode"
-                                                    name="zipCode"
-                                                    type="text"
-                                                    className="validate"
-                                                    required
-                                                    value={shippingInfo.zipCode}
-                                                    onChange={handleInputChange}
-                                                />
-                                                <label htmlFor="zipCode">Código Postal</label>
-                                            </div>
-                                        </div>
-
-                                        <div className="row">
-                                            <div className="input-field col s12">
-                                                <input
-                                                    id="address"
-                                                    name="address"
-                                                    type="text"
-                                                    className="validate"
-                                                    required
-                                                    value={shippingInfo.address}
-                                                    onChange={handleInputChange}
-                                                />
-                                                <label htmlFor="address">Dirección Completa</label>
-                                            </div>
-                                        </div>
-
-                                        <div className="row">
-                                            <div className="input-field col s12 m6">
-                                                <input
-                                                    id="city"
-                                                    name="city"
-                                                    type="text"
-                                                    className="validate"
-                                                    required
-                                                    value={shippingInfo.city}
-                                                    onChange={handleInputChange}
-                                                />
-                                                <label htmlFor="city">Ciudad</label>
-                                            </div>
-                                            <div className="input-field col s12 m6">
-                                                <select
-                                                    ref={selectRef}
-                                                    name="region"
-                                                    value={shippingInfo.region}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                >
-                                                    <option value="" disabled>Selecciona Región</option>
-                                                    <option value="Región de Arica y Parinacota">Región de Arica y Parinacota</option>
-                                                    <option value="Región de Tarapacá">Región de Tarapacá</option>
-                                                    <option value="Región de Antofagasta">Región de Antofagasta</option>
-                                                    <option value="Región de Atacama">Región de Atacama</option>
-                                                    <option value="Región de Coquimbo">Región de Coquimbo</option>
-                                                    <option value="Región de Valparaíso">Región de Valparaíso</option>
-                                                    <option value="Región Metropolitana de Santiago">Región Metropolitana de Santiago</option>
-                                                    <option value="Región del Libertador General Bernardo O'Higgins">Región del Libertador General Bernardo O'Higgins</option>
-                                                    <option value="Región del Maule">Región del Maule</option>
-                                                    <option value="Región de Ñuble">Región de Ñuble</option>
-                                                    <option value="Región del Biobío">Región del Biobío</option>
-                                                    <option value="Región de La Araucanía">Región de La Araucanía</option>
-                                                    <option value="Región de Los Ríos">Región de Los Ríos</option>
-                                                    <option value="Región de Los Lagos">Región de Los Lagos</option>
-                                                    <option value="Región de Aysén del General Carlos Ibáñez del Campo">Región de Aysén del General Carlos Ibáñez del Campo</option>
-                                                    <option value="Región de Magallanes y de la Antártica Chilena">Región de Magallanes y de la Antártica Chilena</option>
-                                                </select>
-                                                <label>Región</label>
-                                            </div>
-                                        </div>
-                                    </form>
+                                    <div style={{ background: '#f9f9f9', padding: '20px', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                                        <p style={{ margin: '8px 0', color: '#555' }}>
+                                            <strong>Nombre:</strong> {user?.nombre} {user?.aPaterno}
+                                        </p>
+                                        <p style={{ margin: '8px 0', color: '#555' }}>
+                                            <strong>Email:</strong> {user?.email}
+                                        </p>
+                                        <p style={{ margin: '8px 0', color: '#555' }}>
+                                            <strong>Teléfono:</strong> {user?.telefono || 'No registrado'}
+                                        </p>
+                                        <p style={{ margin: '8px 0', color: '#555' }}>
+                                            <strong>Dirección:</strong> {user?.direccion || 'No registrada'}
+                                        </p>
+                                        <p style={{ margin: '8px 0', color: '#555' }}>
+                                            <strong>Región:</strong> {user?.idRegion ? `Región ${user.idRegion}` : 'No registrada'}
+                                        </p>
+                                        <p style={{ margin: '12px 0 0 0', fontSize: '0.85em', color: '#999' }}>
+                                            <i className="material-icons" style={{ fontSize: '16px', verticalAlign: 'middle' }}>info</i>
+                                            Los datos se obtienen de tu perfil de usuario. Para modificarlos, ve a tu perfil.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
