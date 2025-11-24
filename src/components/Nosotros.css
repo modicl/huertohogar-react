@@ -1,0 +1,275 @@
+/* Nosotros.css - Bento Grid Layout */
+
+.nosotros-container {
+    max-width: 1200px;
+    margin: 50px auto;
+    padding: 60px 20px;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #f8f9fa; /* Fondo muy suave para toda la sección */
+}
+
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto auto auto;
+    gap: 24px;
+}
+
+/* Estilos Generales de las Tarjetas */
+.bento-item {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(0,0,0,0.02);
+}
+
+.bento-item:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 50px rgba(46, 139, 87, 0.15);
+    border-color: rgba(46, 139, 87, 0.2);
+}
+
+/* 1. Hero Box (Hook) */
+.hero-box {
+    grid-column: span 2;
+    grid-row: span 2;
+    background: linear-gradient(135deg, #ffffff 0%, #f1f8e9 100%);
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.hero-box h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #1b5e20; /* Verde oscuro */
+    line-height: 1.1;
+    margin: 0 0 20px 0;
+}
+
+.hero-box .highlight {
+    color: #2E8B57; /* Verde principal */
+    position: relative;
+    display: inline-block;
+}
+
+.hero-box .highlight::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: rgba(46, 139, 87, 0.2);
+    z-index: 0;
+}
+
+.hero-box p {
+    font-size: 1.2rem;
+    color: #555;
+    max-width: 90%;
+    margin: 0;
+}
+
+/* 2. Stats Boxes */
+.stat-box {
+    grid-column: span 1;
+    grid-row: span 1;
+    background: #2E8B57;
+    color: white;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-box h2 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+    color: #b9f6ca; /* Color verde claro brillante para mejor contraste */
+}
+
+.stat-box p {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 8px;
+    opacity: 0.9;
+    color: #fff;
+}
+
+.stat-box.secondary {
+    background: #1b5e20; /* Un tono más oscuro para variar */
+}
+
+/* 3. Values Box */
+.values-box {
+    grid-column: span 2; /* Ahora ocupa 2 columnas (ancho) */
+    grid-row: span 1;     /* Y solo 1 fila de alto */
+    background: #fff;
+}
+
+.values-box h3 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.values-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: row; /* Cambiado a fila para aprovechar el ancho */
+    justify-content: space-around;
+    gap: 20px;
+}
+
+.values-list li {
+    display: flex;
+    flex-direction: column; /* Icono arriba, texto abajo */
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+}
+
+.values-list li i {
+    background: #e8f5e9;
+    color: #2E8B57;
+    padding: 10px;
+    border-radius: 50%;
+    font-size: 24px;
+}
+
+.values-list li span {
+    font-weight: 600;
+    color: #444;
+    font-size: 1.1rem;
+}
+
+/* 4. Image Box */
+.image-box {
+    grid-column: span 2;
+    grid-row: span 2;
+    padding: 0;
+    background-color: #ddd;
+}
+
+.image-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.image-box:hover img {
+    transform: scale(1.05);
+}
+
+/* 5. History Box */
+.history-box {
+    grid-column: span 2;
+    grid-row: span 1;
+    background: #fff;
+    border-left: 5px solid #2E8B57;
+}
+
+.history-box h3 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-top: 0;
+    font-weight: 700;
+}
+
+.history-box p {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+/* 6. Team Box */
+.team-box {
+    grid-column: span 2;
+    grid-row: span 1;
+    background: #f1f8e9;
+}
+
+.team-box h3 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.team-avatars {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.team-member {
+    text-align: center;
+}
+
+.avatar-circle {
+    width: 60px;
+    height: 60px;
+    background: #ccc;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #fff;
+    font-size: 1.2rem;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.team-member p {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #555;
+    margin: 0;
+}
+
+.team-member span {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .hero-box { grid-column: span 2; }
+    .image-box { grid-column: span 2; }
+    .history-box { grid-column: span 2; }
+    .team-box { grid-column: span 2; }
+    .values-box { grid-column: span 2; grid-row: auto; }
+    .values-list { flex-direction: row; justify-content: space-around; }
+}
+
+@media (max-width: 600px) {
+    .bento-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .hero-box h1 { font-size: 2rem; }
+    .stat-box h2 { font-size: 2.5rem; }
+    .values-list { flex-direction: column; align-items: flex-start; }
+}

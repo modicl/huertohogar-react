@@ -17,6 +17,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
+      '/api/v1/ordenes': {
+        target: 'https://hh-ordenes-backend-barnt.ondigitalocean.app',
+        changeOrigin: true,
+        secure: true,
+      },
       '/api/v1/productos': {
         target: 'https://hh-productos-backend-xcijd.ondigitalocean.app',
         changeOrigin: true,

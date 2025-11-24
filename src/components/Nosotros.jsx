@@ -2,67 +2,88 @@
 import jardinImg from '../assets/images/jardin.jpg'
 import { Footer } from './Footer'
 import { Header } from './Header'
-
+import './Nosotros.css' // Importar estilos Bento Grid
 
 export function Nosotros() {
   return (
     <>
-    <Header />
-    <main className="container">
-        <h1 className="section-title center" style={{margin: "30px 0"}}>¿Quiénes somos?</h1>
-        <div className="row" id="product-list"></div>
-    </main>
+      <Header />
+      <main className="nosotros-container">
+        <div className="bento-grid">
+          
+          {/* 1. Hero / Hook */}
+          <div className="bento-item hero-box">
+            <h1>Del Campo a tu Mesa, <br /> <span className="highlight">Sin Intermediarios.</span></h1>
+            <p>Conectamos a las familias chilenas con la frescura real de la tierra, promoviendo un estilo de vida saludable y sostenible.</p>
+          </div>
 
-    <div className="section" id="nosotros" data-testid="nosotros-section">
-        <div className="container">
-            <div className="row valign-wrapper" data-testid="nosotros-columns">
-               {/* imagen de "nosotros" se agrega className de materialize para hacerla responsiva con sombra sutil y borde redondeado */}
-                <div className="col s12 m6">
-                    <img src={jardinImg} alt="Imagen Nosotros" className="responsive-img z-depth-2"
-                        style={{borderRadius: "12px"}} />
-                </div>
-                <div className="col s12 m6">
-                    <h2 className="center-align">Sobre Nosotros</h2>
-                    <p className="section-about-us" data-testid="nosotros-paragraph">
-                        <i><b>HuertoHogar</b> es una tienda online dedicada a llevar la frescura y calidad de los
-                            productos del campo
-                            directamente a la puerta de nuestros clientes en Chile. Con más de 6 años de experiencia,
-                            operamos
-                            en más de 9 puntos a lo largo del país, incluyendo ciudades clave como Santiago, Puerto
-                            Montt,
-                            Villarica, Nacimiento, Viña del Mar, Valparaíso, y Concepción. Nuestra misión es conectar a
-                            las
-                            familias chilenas con el campo, promoviendo un estilo de vida saludable y sostenible.</i>
-                    </p>
-                </div>
+          {/* 2. Stats */}
+          <div className="bento-item stat-box">
+            <h2>+6</h2>
+            <p>Años de Experiencia</p>
+          </div>
+          <div className="bento-item stat-box secondary">
+            <h2>+10k</h2>
+            <p>Clientes Felices</p>
+          </div>
+
+          {/* 3. History (Moved UP) */}
+          <div className="bento-item history-box">
+            <h3>Nuestra Historia</h3>
+            <p>
+              Desde 2018, comenzamos con un pequeño huerto en el sur de Chile. Hoy, operamos en 9 ciudades clave como Santiago, Concepción y Valparaíso, llevando lo mejor del campo directamente a tu hogar.
+            </p>
+          </div>
+
+          {/* 4. Image / Vibe */}
+          <div className="bento-item image-box">
+            <img src={jardinImg} alt="Huerto Hogar Jardín" />
+          </div>
+
+          {/* 5. Values (Moved DOWN) */}
+          <div className="bento-item values-box">
+            <h3>Nuestros Valores</h3>
+            <ul className="values-list">
+              <li>
+                <i className="material-icons">eco</i>
+                <span>Sostenibilidad</span>
+              </li>
+              <li>
+                <i className="material-icons">local_shipping</i>
+                <span>Rapidez</span>
+              </li>
+              <li>
+                <i className="material-icons">favorite</i>
+                <span>Calidad</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* 6. Team */}
+          <div className="bento-item team-box">
+            <h3>El Equipo</h3>
+            <div className="team-avatars">
+              <div className="team-member">
+                <div className="avatar-circle" style={{background: '#FF7043'}}>FV</div>
+                <p>Felipe Villarroel</p>
+                <span>Developer</span>
+              </div>
+              <div className="team-member">
+                <div className="avatar-circle" style={{background: '#42A5F5'}}>LR</div>
+                <p>Luciano Riveros</p>
+                <span>Developer</span>
+              </div>
+              <div className="team-member">
+                <div className="avatar-circle" style={{background: '#66BB6A'}}>CF</div>
+                <p>Cristobal Faundez</p>
+                <span>Developer</span>
+              </div>
             </div>
-            <div className="row same-height">
-                <div className="col s12 m6">
-                    <h2 className="center-align">Nuestra Misión</h2>
-                    <p className="section-about-us" data-testid="nosotros-paragraph">
-                        Nuestra misión es proporcionar productos frescos y de calidad directamente desde el campo hasta
-                        la puerta de nuestros clientes, garantizando la frescura y el sabor en cada entrega. Nos
-                        comprometemos a fomentar una conexión más cercana entre los consumidores y los agricultores
-                        locales, apoyando prácticas agrícolas sostenibles y promoviendo una alimentación saludable en
-                        todos los hogares chilenos.
-                    </p>
-                </div>
-                <div className="col s12 m6">
-                    <h2 className="center-align">Nuestra Visión</h2>
-                    <p className="section-about-us" data-testid="nosotros-paragraph">
-                        Nuestra visión es ser la tienda online líder en la distribución de productos frescos y naturales
-                        en
-                        Chile, reconocida por nuestra calidad excepcional, servicio al cliente y compromiso con la
-                        sostenibilidad. Aspiramos a expandir nuestra presencia a nivel nacional e internacional,
-                        estableciendo un nuevo estándar en la distribución de productos agrícolas directos del productor
-                        al
-                        consumidor.
-                    </p>
-                </div>
-            </div>
+          </div>
+
         </div>
-    </div>
-    <Footer />
-  </>
+      </main>
+      <Footer />
+    </>
   );
 }

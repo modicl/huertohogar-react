@@ -1,0 +1,12 @@
+/* Carousel Indicators Customization */
+.carousel .indicators .indicator-item {
+    background-color: rgba(46, 139, 87, 0.5); /* Green with opacity */
+}
+
+.carousel .indicators .indicator-item.active {
+    background-color: #2E8B57; /* Solid Green */
+}
+
+#testimonial-carousel .indicators {
+    bottom: 40px; /* Move indicators up */
+}

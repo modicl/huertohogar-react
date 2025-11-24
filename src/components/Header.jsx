@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import logoNavbar from '../assets/images/logo_navbar.png';
 
 export function Header() {
+    const { user } = useAuth();
     const [cartCount, setCartCount] = useState(0);
 
     // Función para actualizar el contador del carrito
@@ -86,8 +88,19 @@ export function Header() {
                                 <i className="material-icons" style={{ verticalAlign: "middle" }}>search</i>
                             </button>
                         </form>
-                        <Link to="/registro" title="Registro/Iniciar Sesión">
+                        <Link to="/registro" title={user ? "Mi Perfil" : "Registro/Iniciar Sesión"} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <i className="fa fa-user" style={{ fontSize: "1.2rem", color: "#2E8B57" }}></i>
+                            {user ? (
+                                
+                                <span style={{ color: "#2E8B57", fontWeight: "600", fontSize: "0.9rem" }}>
+                                    {user.nombre} {user.aPaterno || user.apaterno || ''}
+                                </span>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.1', fontSize: '0.75rem', color: '#2E8B57', textAlign: 'left' }}>
+                                    <span>Registro /</span>
+                                    <span>Iniciar sesión</span>
+                                </div>
+                            )}
                         </Link>
                         <Link to="/checkout" title="Carrito de compras" style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
                             <i className="fa fa-shopping-cart" data-testid="carrito" style={{ fontSize: "1.2rem", color: "#2E8B57" }}></i>
@@ -111,7 +124,7 @@ export function Header() {
                                     {cartCount > 99 ? '99+' : cartCount}
                                 </span>
                             )}
-                            <span style={{ marginLeft: "4px" }}>Tu carrito</span>
+                            <span style={{ marginLeft: "4px" }}>Mi carrito</span>
                         </Link>
 
 
@@ -125,8 +138,23 @@ export function Header() {
                 <li><Link to="/nosotros">Nosotros</Link></li>
                 <li><Link to="/contacto">Contacto</Link></li>
                 <li><Link to="/blog">Blog</Link></li>
-                <li><Link to="/registro"> Registro/Iniciar Sesión<i className="fa fa-user"
-                    style={{ fontSize: "1.0rem", color: "#2E8B57", marginRight: "-9px" }}></i></Link></li>
+                <li>
+                    <Link to="/registro">
+                        {user ? (
+                            <>
+                                <span style={{ marginRight: '8px', color: '#2E8B57', fontWeight: 'bold' }}>
+                                    {user.nombre} {user.aPaterno || user.apaterno || ''}
+                                </span>
+                                <i className="fa fa-user" style={{ fontSize: "1.0rem", color: "#2E8B57" }}></i>
+                            </>
+                        ) : (
+                            <>
+                                Registro/Iniciar Sesión
+                                <i className="fa fa-user" style={{ fontSize: "1.0rem", color: "#2E8B57", marginLeft: "8px" }}></i>
+                            </>
+                        )}
+                    </Link>
+                </li>
                 <li>
                     <Link to="/checkout" data-testid="carrito" itle="Carrito de compras" style={{ position: "relative", display: "flex", alignItems: "center" }}>
                         <i className="fa fa-shopping-cart" style={{ fontSize: "1.0rem", color: "#2E8B57", marginRight: "8px" }}></i>

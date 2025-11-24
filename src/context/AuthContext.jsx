@@ -12,6 +12,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Cargar usuario del localStorage al iniciar
@@ -21,28 +22,32 @@ export const AuthProvider = ({ children }) => {
     
     if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
+      setToken(storedToken);
     }
     setLoading(false);
   }, []);
 
   const login = (userData, token) => {
     setUser(userData);
+    setToken(token);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', token);
   };
 
   const logout = () => {
     setUser(null);
+    setToken(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
   };
 
   const isAuthenticated = () => {
-    return user !== null;
+    return user !== null && token !== null;
   };
 
   const value = {
     user,
+    token,
     login,
     logout,
     isAuthenticated,

@@ -1,47 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { API_URLS } from '../config/api.js';
 
 export function PerfilUsuario() {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const [vistaActual, setVistaActual] = useState('resumen');
+  const [ordenes, setOrdenes] = useState([]);
+  const [loadingOrdenes, setLoadingOrdenes] = useState(false);
 
-  // Órdenes de ejemplo
-  const ordenesEjemplo = [
-    {
-      id: 1,
-      fecha: '2024-11-10',
-      total: 25990,
-      estado: 'Entregado',
-      productos: [
-        { nombre: 'Lechuga Orgánica', cantidad: 2, precio: 1990 },
-        { nombre: 'Tomates Cherry', cantidad: 3, precio: 2990 },
-        { nombre: 'Zanahorias', cantidad: 1, precio: 1500 }
-      ]
-    },
-    {
-      id: 2,
-      fecha: '2024-11-08',
-      total: 18500,
-      estado: 'En camino',
-      productos: [
-        { nombre: 'Espinacas', cantidad: 2, precio: 2500 },
-        { nombre: 'Brócoli', cantidad: 1, precio: 3500 }
-      ]
-    },
-    {
-      id: 3,
-      fecha: '2024-11-05',
-      total: 32400,
-      estado: 'Entregado',
-      productos: [
-        { nombre: 'Mix de Lechugas', cantidad: 3, precio: 2800 },
-        { nombre: 'Pepinos', cantidad: 2, precio: 1900 },
-        { nombre: 'Albahaca Fresca', cantidad: 1, precio: 2500 }
-      ]
-    }
-  ];
+  // Cargar órdenes del usuario
+  useEffect(() => {
+    const fetchOrdenes = async () => {
+      if (!token) return;
+      
+      setLoadingOrdenes(true);
+      try {
+        const response = await axios.get(`${API_URLS.ordenes}/mis-ordenes`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.data) {
+          // Ordenar por fecha descendente (más recientes primero)
+          const ordenesOrdenadas = Array.isArray(response.data) 
+            ? response.data.sort((a, b) => new Date(b.fechaOrden) - new Date(a.fechaOrden))
+            : [];
+          setOrdenes(ordenesOrdenadas);
+        }
+      } catch (error) {
+        console.error('Error al cargar órdenes:', error);
+        if (window.M) {
+          window.M.toast({ html: 'Error al cargar tus órdenes', classes: 'red' });
+        }
+      } finally {
+        setLoadingOrdenes(false);
+      }
+    };
+
+    fetchOrdenes();
+  }, [token]);
 
   const handleLogout = () => {
     logout();
@@ -234,7 +235,7 @@ export function PerfilUsuario() {
                             borderRadius: '10px',
                             marginBottom: '10px'
                           }}>
-                            <h3 style={{ color: '#2E8B57', margin: '0' }}>{ordenesEjemplo.length}</h3>
+                            <h3 style={{ color: '#2E8B57', margin: '0' }}>{ordenes.length}</h3>
                             <p style={{ margin: '5px 0', color: '#666' }}>Órdenes totales</p>
                           </div>
                         </div>
@@ -247,7 +248,7 @@ export function PerfilUsuario() {
                             marginBottom: '10px'
                           }}>
                             <h3 style={{ color: '#2E8B57', margin: '0' }}>
-                              ${ordenesEjemplo.reduce((sum, orden) => sum + orden.total, 0).toLocaleString('es-CL')}
+                              ${ordenes.reduce((sum, orden) => sum + (orden.totalOrden || 0), 0).toLocaleString('es-CL')}
                             </h3>
                             <p style={{ margin: '5px 0', color: '#666' }}>Total gastado</p>
                           </div>
@@ -261,7 +262,7 @@ export function PerfilUsuario() {
                             marginBottom: '10px'
                           }}>
                             <h3 style={{ color: '#2E8B57', margin: '0' }}>
-                              {ordenesEjemplo.filter(o => o.estado === 'Entregado').length}
+                              {ordenes.filter(o => o.estado === 'Entregado').length}
                             </h3>
                             <p style={{ margin: '5px 0', color: '#666' }}>Entregadas</p>
                           </div>
@@ -278,51 +279,81 @@ export function PerfilUsuario() {
                     Mis Órdenes
                   </h4>
 
-                  {ordenesEjemplo.map((orden) => (
-                    <div key={orden.id} className="card" style={{ marginBottom: '20px', borderRadius: '10px' }}>
-                      <div className="card-content">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                          <div>
-                            <strong style={{ fontSize: '18px' }}>Orden #{orden.id}</strong>
-                            <p style={{ margin: '5px 0', color: '#666' }}>
-                              Fecha: {new Date(orden.fecha).toLocaleDateString('es-CL')}
-                            </p>
-                          </div>
-                          <div style={{ textAlign: 'right' }}>
-                            <span style={{
-                              backgroundColor: orden.estado === 'Entregado' ? '#4CAF50' : '#FF9800',
-                              color: 'white',
-                              padding: '5px 15px',
-                              borderRadius: '20px',
-                              fontSize: '14px'
-                            }}>
-                              {orden.estado}
-                            </span>
-                            <p style={{ margin: '10px 0 0 0', fontSize: '18px', fontWeight: 'bold', color: '#2E8B57' }}>
-                              Total: ${orden.total.toLocaleString('es-CL')}
-                            </p>
+                  {loadingOrdenes ? (
+                    <div className="center-align" style={{ padding: '40px' }}>
+                      <div className="preloader-wrapper active">
+                        <div className="spinner-layer spinner-green-only">
+                          <div className="circle-clipper left">
+                            <div className="circle"></div>
+                          </div><div className="gap-patch">
+                            <div className="circle"></div>
+                          </div><div className="circle-clipper right">
+                            <div className="circle"></div>
                           </div>
                         </div>
-
-                        <div className="divider" style={{ margin: '15px 0' }}></div>
-
-                        <h6 style={{ marginBottom: '10px' }}>Productos:</h6>
-                        <ul style={{ listStyle: 'none', padding: 0 }}>
-                          {orden.productos.map((producto, index) => (
-                            <li key={index} style={{ 
-                              padding: '8px 0', 
-                              borderBottom: index < orden.productos.length - 1 ? '1px solid #eee' : 'none',
-                              display: 'flex',
-                              justifyContent: 'space-between'
-                            }}>
-                              <span>{producto.nombre} (x{producto.cantidad})</span>
-                              <span style={{ color: '#2E8B57' }}>${(producto.precio * producto.cantidad).toLocaleString('es-CL')}</span>
-                            </li>
-                          ))}
-                        </ul>
                       </div>
+                      <p>Cargando tus órdenes...</p>
                     </div>
-                  ))}
+                  ) : ordenes.length === 0 ? (
+                    <div className="center-align" style={{ padding: '40px', color: '#999' }}>
+                      <i className="material-icons" style={{ fontSize: '48px', marginBottom: '10px' }}>shopping_basket</i>
+                      <p>No tienes órdenes registradas aún.</p>
+                    </div>
+                  ) : (
+                    ordenes.map((orden) => (
+                      <div key={orden.idOrden} className="card" style={{ marginBottom: '20px', borderRadius: '10px' }}>
+                        <div className="card-content">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', flexWrap: 'wrap' }}>
+                            <div>
+                              <strong style={{ fontSize: '18px' }}>Orden #{orden.idOrden}</strong>
+                              <p style={{ margin: '5px 0', color: '#666' }}>
+                                Fecha: {orden.fechaOrden ? new Date(orden.fechaOrden).toLocaleDateString('es-CL') : 'Fecha no disponible'}
+                              </p>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <span style={{
+                                backgroundColor: orden.estado === 'Entregado' ? '#4CAF50' : '#FF9800',
+                                color: 'white',
+                                padding: '5px 15px',
+                                borderRadius: '20px',
+                                fontSize: '14px'
+                              }}>
+                                {orden.estado}
+                              </span>
+                              <p style={{ margin: '10px 0 0 0', fontSize: '18px', fontWeight: 'bold', color: '#2E8B57' }}>
+                                Total: ${(orden.totalOrden || 0).toLocaleString('es-CL')}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="divider" style={{ margin: '15px 0' }}></div>
+
+                          <h6 style={{ marginBottom: '10px' }}>Productos:</h6>
+                          <ul style={{ listStyle: 'none', padding: 0 }}>
+                            {orden.detalleOrden && orden.detalleOrden.length > 0 ? (
+                              orden.detalleOrden.map((detalle, index) => (
+                                <li key={index} style={{ 
+                                  padding: '8px 0', 
+                                  borderBottom: index < orden.detalleOrden.length - 1 ? '1px solid #eee' : 'none',
+                                  display: 'flex',
+                                  justifyContent: 'space-between'
+                                }}>
+                                  <span>
+                                    {detalle.producto?.nombreProducto || `Producto #${detalle.producto?.idProducto}`} (x{detalle.cantidad})
+                                  </span>
+                                  <span style={{ color: '#2E8B57' }}>
+                                    ${((detalle.precioUnitario || 0) * detalle.cantidad).toLocaleString('es-CL')}
+                                  </span>
+                                </li>
+                              ))
+                            ) : (
+                              <li style={{ color: '#999', fontStyle: 'italic' }}>No hay detalles disponibles</li>
+                            )}
+                          </ul>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
             </div>
