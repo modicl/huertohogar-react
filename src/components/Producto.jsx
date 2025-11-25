@@ -828,6 +828,29 @@ export function Producto() {
                           ${(producto.precio || 0).toLocaleString('es-CL')}
                         </p>
 
+                        {/* Alerta de stock bajo */}
+                        {producto.stock <= 5 && (
+                          <div style={{
+                            margin: "8px 0",
+                            padding: "6px 12px",
+                            background: "#fff3cd",
+                            border: "1px solid #ffc107",
+                            borderRadius: "6px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            fontSize: "0.85em",
+                            color: "#856404"
+                          }}>
+                            <i className="material-icons" style={{ fontSize: "18px", color: "#ffc107" }}>
+                              warning
+                            </i>
+                            <span style={{ fontWeight: "600" }}>
+                              ¡Solo quedan {producto.stock} {producto.stock === 1 ? 'unidad' : 'unidades'}!
+                            </span>
+                          </div>
+                        )}
+
                         {/* Selector de cantidad - Más compacto */}
                         <div style={{ margin: "10px 0", display: "flex", alignItems: "center", gap: "6px" }}>
                           <label htmlFor={`quantity-${producto.id}`} style={{ fontSize: "0.85em", fontWeight: "500", color: "#555" }}>

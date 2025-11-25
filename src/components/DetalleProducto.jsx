@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { API_URLS } from '../config/api';
+import { useAuth } from '../context/AuthContext';
 
 export function DetalleProducto() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, token } = useAuth();
   const [producto, setProducto] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,8 +17,8 @@ export function DetalleProducto() {
   
   // Estados para comentarios
   const [comentarios, setComentarios] = useState([]);
+  const [loadingComentarios, setLoadingComentarios] = useState(false);
   const [nuevoComentario, setNuevoComentario] = useState({
-    usuario: '',
     comentario: '',
     estrellas: 5
   });
@@ -44,24 +47,49 @@ export function DetalleProducto() {
     }
   }, [id]);
 
-  // Cargar comentarios del producto desde localStorage
+  // Cargar comentarios del producto desde la API
   useEffect(() => {
-    if (producto) {
-      const storedComentarios = localStorage.getItem(`comentarios-${id}`);
-      if (storedComentarios) {
-        setComentarios(JSON.parse(storedComentarios));
+    const fetchComentarios = async () => {
+      if (!id) return;
+      
+      try {
+        setLoadingComentarios(true);
+        const response = await axios.get(`${API_URLS.comentarios}/${id}`);
+        
+        // Normalizar datos de la API y ordenar por fecha descendente
+        const comentariosNormalizados = response.data
+          .map(c => ({
+            id: c.idComentario,
+            usuario: c.usuario?.nombre || 'Usuario',
+            comentario: c.comentario,
+            estrellas: c.calificacion,
+            fecha: c.fecha
+          }))
+          .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        
+        setComentarios(comentariosNormalizados);
+      } catch (error) {
+        console.error('Error al cargar comentarios:', error);
+        // Si no hay comentarios o hay error, dejar array vacío
+        setComentarios([]);
+      } finally {
+        setLoadingComentarios(false);
       }
-    }
-  }, [id, producto]);  // Función para manejar envío de comentario
-  const handleSubmitComentario = (e) => {
+    };
+
+    fetchComentarios();
+  }, [id]);  // Función para manejar envío de comentario
+  const handleSubmitComentario = async (e) => {
     e.preventDefault();
     
-    // Validaciones
-    if (!nuevoComentario.usuario.trim()) {
-      alert('Por favor ingresa tu nombre');
+    // Verificar que el usuario esté autenticado
+    if (!user || !token) {
+      alert('Debes iniciar sesión para dejar un comentario');
+      navigate('/login');
       return;
     }
     
+    // Validaciones
     if (!nuevoComentario.comentario.trim()) {
       alert('Por favor escribe un comentario');
       return;
@@ -72,33 +100,49 @@ export function DetalleProducto() {
       return;
     }
 
-    // Crear el nuevo comentario
-    const comentarioNuevo = {
-      id: Date.now(),
-      usuario: nuevoComentario.usuario.trim(),
-      comentario: nuevoComentario.comentario.trim(),
-      estrellas: nuevoComentario.estrellas,
-      fecha: new Date().toISOString()
-    };
+    try {
+      // Crear el body para el POST
+      const body = {
+        idProducto: parseInt(id),
+        usuarioId: user.idUsuario,
+        comentario: nuevoComentario.comentario.trim(),
+        calificacion: nuevoComentario.estrellas,
+        fecha: new Date().toISOString().split('T')[0] // Formato YYYY-MM-DD
+      };
 
-    // Agregar el nuevo comentario al inicio del array
-    const nuevosComentarios = [comentarioNuevo, ...comentarios];
-    
-    // Guardar en localStorage con la clave específica del producto
-    localStorage.setItem(`comentarios-${id}`, JSON.stringify(nuevosComentarios));
-    
-    // Actualizar el estado de comentarios para re-renderizar
-    setComentarios(nuevosComentarios);
-    
-    // Resetear formulario
-    setNuevoComentario({
-      usuario: '',
-      comentario: '',
-      estrellas: 5
-    });
-    
-    // Mostrar confirmación
-    alert('¡Gracias por tu opinión! Tu comentario ha sido publicado.');
+      // Enviar comentario a la API
+      await axios.post(API_URLS.comentarios, body, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Recargar comentarios ordenados por fecha descendente
+      const response = await axios.get(`${API_URLS.comentarios}/${id}`);
+      const comentariosNormalizados = response.data
+        .map(c => ({
+          id: c.idComentario,
+          usuario: c.usuario?.nombre || 'Usuario',
+          comentario: c.comentario,
+          estrellas: c.calificacion,
+          fecha: c.fecha
+        }))
+        .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      setComentarios(comentariosNormalizados);
+      
+      // Resetear formulario
+      setNuevoComentario({
+        comentario: '',
+        estrellas: 5
+      });
+      
+      // Mostrar confirmación
+      alert('¡Gracias por tu opinión! Tu comentario ha sido publicado.');
+    } catch (error) {
+      console.error('Error al enviar comentario:', error);
+      alert('Hubo un error al publicar tu comentario. Por favor intenta nuevamente.');
+    }
   };
 
   // Función para renderizar estrellas
@@ -621,85 +665,95 @@ export function DetalleProducto() {
     Deja tu opinión
   </h4>
   
-  <form onSubmit={handleSubmitComentario}>
-    {/* Campo de nombre */}
-    <div className="input-field">
-      <i className="material-icons prefix" style={{ color: '#2E8B57' }}>person</i>
-      <input
-        id="usuario"
-        type="text"
-        value={nuevoComentario.usuario}
-        onChange={(e) => setNuevoComentario({...nuevoComentario, usuario: e.target.value})}
-        maxLength="50"
-      />
-      <label htmlFor="usuario">Tu nombre</label>
-    </div>
-
-    {/* Selector de estrellas */}
-    <div style={{ marginBottom: '20px' }}>
-      <label style={{ 
-        display: 'block',
-        marginBottom: '10px',
-        color: '#666',
-        fontSize: '0.9em'
-      }}>
-        Calificación *
-      </label>
-      <div style={{ display: 'flex', gap: '5px', fontSize: '28px' }}>
-        {[1, 2, 3, 4, 5].map((star) => (
-          <span
-            key={star}
-            onClick={() => setNuevoComentario({...nuevoComentario, estrellas: star})}
-            style={{
-              cursor: 'pointer',
-              color: star <= nuevoComentario.estrellas ? '#FFB900' : '#ddd',
-              transition: 'color 0.2s'
-            }}
-            onMouseEnter={(e) => e.target.style.color = '#FFB900'}
-            onMouseLeave={(e) => e.target.style.color = star <= nuevoComentario.estrellas ? '#FFB900' : '#ddd'}
-          >
-            ★
-          </span>
-        ))}
+  {user && token ? (
+    <form onSubmit={handleSubmitComentario}>
+      {/* Selector de estrellas */}
+      <div style={{ marginBottom: '20px' }}>
+        <label style={{ 
+          display: 'block',
+          marginBottom: '10px',
+          color: '#666',
+          fontSize: '0.9em'
+        }}>
+          Calificación *
+        </label>
+        <div style={{ display: 'flex', gap: '5px', fontSize: '28px' }}>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <span
+              key={star}
+              onClick={() => setNuevoComentario({...nuevoComentario, estrellas: star})}
+              style={{
+                cursor: 'pointer',
+                color: star <= nuevoComentario.estrellas ? '#FFB900' : '#ddd',
+                transition: 'color 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.color = '#FFB900'}
+              onMouseLeave={(e) => e.target.style.color = star <= nuevoComentario.estrellas ? '#FFB900' : '#ddd'}
+            >
+              ★
+            </span>
+          ))}
+        </div>
       </div>
-    </div>
 
-    {/* Campo de comentario */}
-    <div className="input-field">
-      <i className="material-icons prefix" style={{ color: '#2E8B57' }}>comment</i>
-      <textarea
-        id="comentario"
-        className="materialize-textarea"
-        value={nuevoComentario.comentario}
-        onChange={(e) => setNuevoComentario({...nuevoComentario, comentario: e.target.value})}
-        maxLength="100"
-        style={{ minHeight: '80px' }}
-      ></textarea>
-      <label htmlFor="comentario">Tu opinión</label>
-      <span 
-        className="helper-text" 
-        style={{ 
-          color: nuevoComentario.comentario.length > 90 ? '#e74c3c' : '#666' 
+      {/* Campo de comentario */}
+      <div className="input-field">
+        <i className="material-icons prefix" style={{ color: '#2E8B57' }}>comment</i>
+        <textarea
+          id="comentario"
+          className="materialize-textarea"
+          value={nuevoComentario.comentario}
+          onChange={(e) => setNuevoComentario({...nuevoComentario, comentario: e.target.value})}
+          maxLength="100"
+          style={{ minHeight: '80px' }}
+        ></textarea>
+        <label htmlFor="comentario">Tu opinión</label>
+        <span 
+          className="helper-text" 
+          style={{ 
+            color: nuevoComentario.comentario.length > 90 ? '#e74c3c' : '#666' 
+          }}
+        >
+          {nuevoComentario.comentario.length}/100 caracteres
+        </span>
+      </div>
+
+      {/* Botón de enviar */}
+      <button
+        type="submit"
+        className="btn waves-effect waves-light"
+        style={{
+          backgroundColor: '#2E8B57',
+          width: '100%',
+          marginTop: '10px'
         }}
       >
-        {nuevoComentario.comentario.length}/100 caracteres
-      </span>
+        <i className="material-icons left">send</i>
+        Enviar opinión
+      </button>
+    </form>
+  ) : (
+    <div style={{
+      textAlign: 'center',
+      padding: '30px',
+      background: '#f8f8f8',
+      borderRadius: '8px'
+    }}>
+      <i className="material-icons" style={{ fontSize: '48px', color: '#ccc', marginBottom: '12px' }}>
+        lock
+      </i>
+      <p style={{ color: '#666', marginBottom: '20px' }}>
+        Debes iniciar sesión para dejar una opinión
+      </p>
+      <button
+        onClick={() => navigate('/login')}
+        className="btn waves-effect waves-light"
+        style={{ backgroundColor: '#2E8B57' }}
+      >
+        Iniciar sesión
+      </button>
     </div>
-
-    {/* Botón de enviar */}
-    <button
-      type="submit"
-      className="btn waves-effect waves-light"
-      style={{
-        backgroundColor: '#2E8B57',
-        width: '100%',
-        marginTop: '10px'
-      }}
-    >
-      <i className="material-icons left">send</i>
-      Enviar opinión
-    </button>
-  </form>
+  )}
 </div>
 
             </div>
