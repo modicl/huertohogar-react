@@ -1,45 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ordenes as ordenesIniciales } from '../../data/ordenes.jsx';
+import axios from 'axios';
+import { API_URLS } from '../../config/api.js';
+import { useAuth } from '../../context/AuthContext';
 import { productos } from '../../data/productos.jsx';
 import './AdminDashboard.css';
 
 export function AdminDashboard() {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [ordenes, setOrdenes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Cargar órdenes desde localStorage o usar datos iniciales
+  // Cargar órdenes desde la API
   useEffect(() => {
-    const storedOrdenes = JSON.parse(localStorage.getItem('ordenes') || JSON.stringify(ordenesIniciales));
-    setOrdenes(storedOrdenes);
-  }, []);
+    const fetchOrdenes = async () => {
+      try {
+        const response = await axios.get(API_URLS.ordenes, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        // Normalizar datos del API
+        const ordenesNormalizadas = response.data.map(orden => ({
+          id: orden.idOrden,
+          id_usuario: orden.idUsuario,
+          fecha: orden.fechaOrden,
+          estado: orden.estado,
+          total: orden.totalOrden,
+          direccion: orden.direccionEnvio || 'N/A'
+        }));
+
+        setOrdenes(ordenesNormalizadas);
+      } catch (error) {
+        console.error('Error al cargar órdenes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token) {
+      fetchOrdenes();
+    }
+  }, [token]);
 
   // Calcular estadísticas
   const totalOrdenes = ordenes.length;
-  const ordenesPendientes = ordenes.filter(o => o.estado === 'Pendiente').length;
+  const ordenesPendientes = ordenes.filter(o => o.estado?.toLowerCase() === 'pendiente').length;
   const ventasTotales = ordenes
-    .filter(o => o.estado !== 'Cancelado')
+    .filter(o => o.estado?.toLowerCase() !== 'cancelado')
     .reduce((sum, o) => sum + o.total, 0);
   
-  // Productos con stock bajo (menos de 10 unidades)
+  // Productos con stock bajo (5 unidades o menos)
   const storedProductos = JSON.parse(localStorage.getItem('productos') || JSON.stringify(productos));
-  const stockBajo = storedProductos.filter(p => p.stock < 10).length;
+  const stockBajo = storedProductos.filter(p => p.stock <= 5).length;
 
-  // Obtener las 5 órdenes más recientes
+  // Obtener las 7 órdenes más recientes, ordenadas por fecha descendente
   const ordenesRecientes = [...ordenes]
     .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-    .slice(0, 5);
+    .slice(0, 7);
 
   // Función para obtener clase de badge según estado
   const getBadgeClass = (estado) => {
-    switch (estado) {
-      case 'Completado':
+    const estadoLower = estado?.toLowerCase();
+    switch (estadoLower) {
+      case 'completado':
         return 'badge-success';
-      case 'Pendiente':
+      case 'pendiente':
         return 'badge-warning';
-      case 'Cancelado':
+      case 'cancelado':
         return 'badge-danger';
-      case 'En Proceso':
+      case 'en proceso':
         return 'badge-status';
       default:
         return 'badge-status';
@@ -112,7 +144,7 @@ export function AdminDashboard() {
           <div className="card admin-card">
             <div className="card-content">
               <div className="card-header">
-                <span className="card-title-admin">Pedidos Recientes</span>
+                <span className="card-title-admin">Últimos 7 Pedidos Recientes</span>
                 <button 
                   onClick={() => navigate('/admin/pedidos')}
                   className="btn-flat waves-effect"
@@ -122,12 +154,28 @@ export function AdminDashboard() {
                 </button>
               </div>
               
-              {ordenesRecientes.length > 0 ? (
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                  <div className="preloader-wrapper small active">
+                    <div className="spinner-layer spinner-green-only">
+                      <div className="circle-clipper left">
+                        <div className="circle"></div>
+                      </div>
+                      <div className="gap-patch">
+                        <div className="circle"></div>
+                      </div>
+                      <div className="circle-clipper right">
+                        <div className="circle"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : ordenesRecientes.length > 0 ? (
                 <table className="responsive-table striped admin-table">
                   <thead>
                     <tr>
                       <th>ID Pedido</th>
-                      <th>Cliente</th>
+                      <th>ID Usuario</th>
                       <th>Fecha</th>
                       <th>Total</th>
                       <th>Estado</th>
@@ -137,8 +185,8 @@ export function AdminDashboard() {
                   <tbody>
                     {ordenesRecientes.map((orden) => (
                       <tr key={orden.id}>
-                        <td className="font-medium">#{orden.id_usuario}</td>
-                        <td>{orden.shippingInfo.nombre}</td>
+                        <td className="font-medium">#{orden.id}</td>
+                        <td>Usuario #{orden.id_usuario}</td>
                         <td>
                           {new Date(orden.fecha).toLocaleDateString('es-CL', {
                             day: '2-digit',

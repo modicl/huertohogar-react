@@ -1,26 +1,82 @@
 import React, { useState, useEffect } from 'react';
-import { ordenes as ordenesIniciales } from '../../data/ordenes.jsx';
+import axios from 'axios';
+import { API_URLS } from '../../config/api.js';
+import { useAuth } from '../../context/AuthContext.jsx';
 import './AdminDashboard.css';
 
 export function Pedidos() {
+  const { token } = useAuth();
   const [ordenes, setOrdenes] = useState([]);
   const [selectedOrden, setSelectedOrden] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [busqueda, setBusqueda] = useState('');
+  const [loading, setLoading] = useState(true);
 
   // Estados posibles para los pedidos
   const estadosDisponibles = ['Pendiente', 'En Proceso', 'Completado', 'Cancelado', 'Enviado'];
 
-  // Cargar órdenes al iniciar
+  // Cargar órdenes desde la API
   useEffect(() => {
-    const storedOrders = localStorage.getItem('ordenes');
-    if (storedOrders) {
-      setOrdenes(JSON.parse(storedOrders));
-    } else {
-      setOrdenes(ordenesIniciales);
-      localStorage.setItem('ordenes', JSON.stringify(ordenesIniciales));
-    }
-  }, []);
+    const fetchOrdenes = async () => {
+      if (!token) {
+        console.warn('No hay token de autenticación');
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        console.log('Cargando órdenes desde API:', API_URLS.ordenes);
+        const response = await axios.get(API_URLS.ordenes, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.data) {
+          console.log('Órdenes obtenidas desde API:', response.data);
+          // Normalizar las órdenes de la API al formato del componente
+          const ordenesNormalizadas = response.data.map(orden => ({
+            id: orden.idOrden,
+            id_usuario: orden.idUsuario?.toString() || 'N/A',
+            fecha: orden.fechaOrden,
+            estado: orden.estado || 'Pendiente',
+            total: orden.totalOrden || 0,
+            items: orden.detalleOrden?.map(detalle => ({
+              nombre: detalle.producto?.nombreProducto || 'Producto',
+              cantidad: detalle.cantidad,
+              precio: detalle.precioUnitario
+            })) || [],
+            shippingInfo: {
+              fullName: orden.direccionEnvio || 'N/A',
+              email: 'N/A',
+              phone: 'N/A',
+              address: orden.direccionEnvio || 'N/A',
+              city: 'N/A',
+              region: 'N/A',
+              zipCode: 'N/A'
+            },
+            notas: orden.notas || ''
+          }));
+          
+          setOrdenes(ordenesNormalizadas);
+        }
+      } catch (error) {
+        console.error('Error al cargar órdenes:', error);
+        if (window.M) {
+          window.M.toast({ 
+            html: 'Error al cargar las órdenes desde la API', 
+            classes: 'red' 
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrdenes();
+  }, [token]);
 
   // Inicializar Materialize Modal y Select
   useEffect(() => {
@@ -46,39 +102,156 @@ export function Pedidos() {
   };
 
   // Abrir modal de detalles
-  const handleVerDetalle = (orden) => {
-    setSelectedOrden(orden);
-    const modal = document.getElementById('detalleModal');
-    const instance = window.M.Modal.getInstance(modal);
-    if (instance) instance.open();
+  const handleVerDetalle = async (orden) => {
+    try {
+      console.log('Cargando detalles de la orden:', orden.id);
+      
+      // Obtener los detalles completos de la orden desde la API
+      const response = await axios.get(`${API_URLS.ordenes}/${orden.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('Respuesta del API:', response.data);
+
+      if (response.data) {
+        // Calcular subtotal sumando los items
+        const subtotal = response.data.detalleOrden?.reduce((sum, detalle) => 
+          sum + (detalle.precioUnitario * detalle.cantidad), 0) || 0;
+        
+        // Normalizar los datos completos de la orden
+        const ordenCompleta = {
+          id: response.data.idOrden,
+          id_usuario: response.data.idUsuario?.toString() || 'N/A',
+          fecha: response.data.fechaOrden,
+          estado: response.data.estado || 'Pendiente',
+          total: response.data.totalOrden || 0,
+          subtotal: subtotal,
+          envio: (response.data.totalOrden || 0) - subtotal, // Calcular envío como diferencia
+          items: response.data.detalleOrden?.map(detalle => ({
+            nombre: detalle.producto?.nombreProducto || 'Producto',
+            cantidad: detalle.cantidad,
+            precio: detalle.precioUnitario,
+            imagen: detalle.producto?.imagenUrl || ''
+          })) || [],
+          shippingInfo: {
+            fullName: response.data.usuario?.nombre 
+              ? `${response.data.usuario.nombre} ${response.data.usuario.apaterno || ''}`.trim()
+              : 'N/A',
+            email: response.data.usuario?.email || 'N/A',
+            phone: response.data.usuario?.telefono || 'N/A',
+            address: response.data.direccionEnvio || 'N/A',
+            city: 'N/A',
+            region: 'N/A',
+            zipCode: 'N/A'
+          },
+          notas: response.data.notas || ''
+        };
+
+        console.log('Orden completa normalizada:', ordenCompleta);
+        setSelectedOrden(ordenCompleta);
+        
+        // Esperar un tick para asegurar que el estado se actualice
+        setTimeout(() => {
+          const modal = document.getElementById('detalleModal');
+          console.log('Modal encontrado:', modal);
+          if (modal) {
+            const instance = window.M.Modal.getInstance(modal);
+            console.log('Instance del modal:', instance);
+            if (instance) {
+              instance.open();
+            } else {
+              // Re-inicializar el modal si no existe la instancia
+              const newInstance = window.M.Modal.init(modal);
+              newInstance.open();
+            }
+          }
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Error al cargar detalles de la orden:', error);
+      console.error('Detalles del error:', error.response?.data);
+      window.M.toast({ 
+        html: 'Error al cargar los detalles de la orden', 
+        classes: 'red' 
+      });
+    }
   };
 
   // Cambiar estado de la orden
-  const handleCambiarEstado = (ordenId, nuevoEstado) => {
-    const ordenesActualizadas = ordenes.map(orden =>
-      orden.id === ordenId ? { ...orden, estado: nuevoEstado } : orden
-    );
-    setOrdenes(ordenesActualizadas);
-    localStorage.setItem('ordenes', JSON.stringify(ordenesActualizadas));
-    
-    // Actualizar selectedOrden si está abierta
-    if (selectedOrden && selectedOrden.id === ordenId) {
-      setSelectedOrden({ ...selectedOrden, estado: nuevoEstado });
+  const handleCambiarEstado = async (ordenId, nuevoEstado) => {
+    try {
+      // Actualizar en el backend
+      const response = await axios.patch(
+        `${API_URLS.ordenes}/${ordenId}`,
+        { estado: nuevoEstado },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        // Actualizar en el estado local
+        const ordenesActualizadas = ordenes.map(orden =>
+          orden.id === ordenId ? { ...orden, estado: nuevoEstado } : orden
+        );
+        setOrdenes(ordenesActualizadas);
+        
+        // Actualizar selectedOrden si está abierta
+        if (selectedOrden && selectedOrden.id === ordenId) {
+          setSelectedOrden({ ...selectedOrden, estado: nuevoEstado });
+        }
+        
+        window.M.toast({ html: 'Estado actualizado correctamente', classes: 'green' });
+      }
+    } catch (error) {
+      console.error('Error al actualizar estado:', error);
+      window.M.toast({ 
+        html: 'Error al actualizar el estado. Intenta nuevamente.', 
+        classes: 'red' 
+      });
     }
-    
-    window.M.toast({ html: 'Estado actualizado correctamente', classes: 'green' });
   };
 
   // Actualizar notas de la orden
-  const handleActualizarNotas = (ordenId, nuevasNotas) => {
-    const ordenesActualizadas = ordenes.map(orden =>
-      orden.id === ordenId ? { ...orden, notas: nuevasNotas } : orden
-    );
-    setOrdenes(ordenesActualizadas);
-    localStorage.setItem('ordenes', JSON.stringify(ordenesActualizadas));
-    
-    if (selectedOrden && selectedOrden.id === ordenId) {
-      setSelectedOrden({ ...selectedOrden, notas: nuevasNotas });
+  const handleActualizarNotas = async (ordenId, nuevasNotas) => {
+    try {
+      // Actualizar en el backend
+      const response = await axios.patch(
+        `${API_URLS.ordenes}/${ordenId}`,
+        { notas: nuevasNotas },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        // Actualizar en el estado local
+        const ordenesActualizadas = ordenes.map(orden =>
+          orden.id === ordenId ? { ...orden, notas: nuevasNotas } : orden
+        );
+        setOrdenes(ordenesActualizadas);
+        
+        if (selectedOrden && selectedOrden.id === ordenId) {
+          setSelectedOrden({ ...selectedOrden, notas: nuevasNotas });
+        }
+        
+        window.M.toast({ html: 'Notas actualizadas correctamente', classes: 'green' });
+      }
+    } catch (error) {
+      console.error('Error al actualizar notas:', error);
+      window.M.toast({ 
+        html: 'Error al actualizar las notas. Intenta nuevamente.', 
+        classes: 'red' 
+      });
     }
   };
 
@@ -248,6 +421,24 @@ export function Pedidos() {
                 </span>
               </div>
               
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                  <div className="preloader-wrapper active">
+                    <div className="spinner-layer spinner-green-only">
+                      <div className="circle-clipper left">
+                        <div className="circle"></div>
+                      </div>
+                      <div className="gap-patch">
+                        <div className="circle"></div>
+                      </div>
+                      <div className="circle-clipper right">
+                        <div className="circle"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="dashboard-subtitle" style={{ marginTop: '20px' }}>Cargando pedidos...</p>
+                </div>
+              ) : (
               <table className="responsive-table striped admin-table">
                 <thead>
                   <tr>
@@ -294,7 +485,7 @@ export function Pedidos() {
                         {formatearFecha(orden.fecha)}
                       </td>
                       <td className="dashboard-subtitle">
-                        {orden.productos.length} producto{orden.productos.length !== 1 ? 's' : ''}
+                        {orden.items.length} producto{orden.items.length !== 1 ? 's' : ''}
                       </td>
                       <td className="font-medium" style={{ color: '#27ae60' }}>
                         ${orden.total.toLocaleString('es-CL')}
@@ -333,6 +524,7 @@ export function Pedidos() {
               )}
             </tbody>
           </table>
+              )}
         </div>
       </div>
     </div>
@@ -408,7 +600,7 @@ export function Pedidos() {
               <div style={{ marginTop: '20px' }}>
                 <h6 style={{ color: '#2c3e50', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <i className="material-icons" style={{ color: '#2E8B57' }}>shopping_cart</i>
-                  Productos ({selectedOrden.productos.length})
+                  Productos ({selectedOrden.items.length})
                 </h6>
                 <table className="striped">
                   <thead>
@@ -420,24 +612,15 @@ export function Pedidos() {
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedOrden.productos.map((producto, index) => (
+                    {selectedOrden.items.map((item, index) => (
                       <tr key={index}>
                         <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {producto.imagen && (
-                              <img 
-                                src={producto.imagen} 
-                                alt={producto.nombre}
-                                style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
-                              />
-                            )}
-                            <strong>{producto.nombre}</strong>
-                          </div>
+                          <strong>{item.nombre}</strong>
                         </td>
-                        <td>${producto.precio.toLocaleString('es-CL')}</td>
-                        <td>{producto.quantity}</td>
+                        <td>${item.precio.toLocaleString('es-CL')}</td>
+                        <td>{item.cantidad}</td>
                         <td>
-                          <strong>${(producto.precio * producto.quantity).toLocaleString('es-CL')}</strong>
+                          <strong>${(item.precio * item.cantidad).toLocaleString('es-CL')}</strong>
                         </td>
                       </tr>
                     ))}
@@ -450,15 +633,15 @@ export function Pedidos() {
                 <div style={{ maxWidth: '400px', marginLeft: 'auto' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                     <span>Subtotal:</span>
-                    <strong>${selectedOrden.subtotal.toLocaleString('es-CL')}</strong>
+                    <strong>${(selectedOrden.subtotal || 0).toLocaleString('es-CL')}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                     <span>Envío:</span>
-                    <strong>${selectedOrden.envio.toLocaleString('es-CL')}</strong>
+                    <strong>${(selectedOrden.envio || 0).toLocaleString('es-CL')}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2em', borderTop: '2px solid #2E8B57', paddingTop: '10px' }}>
                     <strong>Total:</strong>
-                    <strong style={{ color: '#2E8B57' }}>${selectedOrden.total.toLocaleString('es-CL')}</strong>
+                    <strong style={{ color: '#2E8B57' }}>${(selectedOrden.total || 0).toLocaleString('es-CL')}</strong>
                   </div>
                 </div>
               </div>

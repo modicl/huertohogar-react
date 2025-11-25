@@ -8,7 +8,7 @@ export function EnConstruccion() {
       {/* Encabezado */}
       <div className="dashboard-header">
         <h1 className="dashboard-title">Sección en Construcción</h1>
-        <p className="dashboard-subtitle">Esta funcionalidad estará disponible en la Entrega N°3</p>
+        <p className="dashboard-subtitle">Esta funcionalidad estará disponible en proximos Sprint Reviews</p>
       </div>
 
       {/* Tarjeta Principal */}
@@ -66,8 +66,8 @@ export function EnConstruccion() {
             lineHeight: '1.6',
             marginBottom: '24px'
           }}>
-            Esta funcionalidad está siendo desarrollada y estará disponible en la
-            <strong style={{ color: '#2c3e50' }}> Entrega N°3</strong>.
+            Esta funcionalidad está siendo desarrollada y estará disponible en 
+            <strong style={{ color: '#2c3e50' }}> próximos Sprint Reviews</strong>.
           </p>
 
           {/* Lista de características planeadas */}
