@@ -25,39 +25,33 @@ describe('Componente Nosotros', () => {
         expect(screen.getByTestId('footer')).toBeInTheDocument();
     });
 
-    it('debe mostrar el título principal "¿Quiénes somos?"', () => {
+    it('debe mostrar el título principal con el eslogan de la empresa', () => {
         renderWithRouter(<Nosotros />);
-        const titulo = screen.getByRole('heading', { level: 1, name: /¿Quiénes somos\?/i }); //level para indicar h1
-        expect(titulo).toBeInTheDocument();
+        // El nuevo diseño tiene "Del Campo a tu Mesa" como título
+        expect(screen.getByText(/Del Campo a tu Mesa/i)).toBeInTheDocument();
     });
 
-    it('debe contener la sección "nosotros" con dos columnas', () => {
-        renderWithRouter(<Nosotros />);
-        const section = screen.getByTestId('nosotros-section');
-        expect(section).toBeInTheDocument();
-
-        const cols = screen.getByTestId('nosotros-columns').querySelectorAll('.col');
-        expect(cols.length).toBeGreaterThanOrEqual(2);
+    it('debe contener la sección principal con estructura bento grid', () => {
+        const { container } = renderWithRouter(<Nosotros />);
+        const bentoGrid = container.querySelector('.bento-grid');
+        expect(bentoGrid).toBeInTheDocument();
     });
 
-    it('debe renderizar la imagen de "Nosotros" con alt correcto y clases responsivas', () => {
+    it('debe renderizar la imagen del jardín con alt correcto', () => {
         renderWithRouter(<Nosotros />);
-        const img = screen.getByAltText('Imagen Nosotros');
+        const img = screen.getByAltText('Huerto Hogar Jardín');
         expect(img).toBeInTheDocument();
-        expect(img).toHaveClass('responsive-img');
-        expect(img).toHaveClass('z-depth-2'); // buscar clase de sombra
     });
 
-    it('debe mostrar los subtítulos "Sobre Nosotros", "Nuestra Misión" y "Nuestra Visión"', () => {
+    it('debe mostrar secciones importantes como Nuestra Historia y Nuestros Valores', () => {
         renderWithRouter(<Nosotros />);
-        expect(screen.getByRole('heading', { level: 2, name: /Sobre Nosotros/i })).toBeInTheDocument();
-        expect(screen.getByRole('heading', { level: 2, name: /Nuestra Misión/i })).toBeInTheDocument();
-        expect(screen.getByRole('heading', { level: 2, name: /Nuestra Visión/i })).toBeInTheDocument();
+        expect(screen.getByText(/Nuestra Historia/i)).toBeInTheDocument();
+        expect(screen.getByText(/Nuestros Valores/i)).toBeInTheDocument();
     });
 
-    it('debe contener párrafos con la clase "section-about-us"', () => {
+    it('debe mostrar estadísticas y la sección del equipo', () => {
         renderWithRouter(<Nosotros />);
-        const paragraphs = document.querySelectorAll('.section-about-us');
-        expect(paragraphs.length).toBeGreaterThanOrEqual(3);
+        expect(screen.getByText(/Años de Experiencia/i)).toBeInTheDocument();
+        expect(screen.getByText(/El Equipo/i)).toBeInTheDocument();
     });
 });

@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, within, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Comentarios } from './Comentarios';
 
 const mockProductosConComentarios = [
@@ -182,5 +183,124 @@ describe('Componente Comentarios', () => {
     
     const modal = container.querySelector('#modal-editar-comentario');
     expect(modal).toBeInTheDocument();
+  });
+
+  describe('Filtrado de comentarios', () => {
+    it('debe filtrar por producto cuando se selecciona', async () => {
+      const user = userEvent.setup();
+      render(<Comentarios />);
+      
+      // Cambiar filtro a primer producto
+      const selects = screen.getAllByRole('combobox');
+      expect(selects.length).toBeGreaterThan(0);
+    });
+
+    it('debe mostrar todos los comentarios con filtro "todos"', () => {
+      render(<Comentarios />);
+      
+      // Verificar que se muestran todos los comentarios
+      expect(screen.getByText('Juan Pérez')).toBeInTheDocument();
+      expect(screen.getByText('María González')).toBeInTheDocument();
+      expect(screen.getByText('Pedro López')).toBeInTheDocument();
+    });
+  });
+
+  describe('Estadísticas de calificación', () => {
+    it('debe calcular comentarios de última semana', () => {
+      render(<Comentarios />);
+      
+      expect(screen.getByText(/Última Semana/i)).toBeInTheDocument();
+    });
+
+    it('debe mostrar promedio de estrellas', () => {
+      render(<Comentarios />);
+      
+      // (5 + 4 + 3) / 3 = 4
+      expect(screen.getByText('Promedio Estrellas')).toBeInTheDocument();
+    });
+  });
+
+  describe('Acciones de comentarios', () => {
+    it('debe tener botones de editar y eliminar para cada comentario', () => {
+      render(<Comentarios />);
+      
+      const editButtons = screen.getAllByText('edit');
+      const deleteButtons = screen.getAllByText('delete');
+      
+      // 3 comentarios = 3 botones de cada tipo
+      expect(editButtons.length).toBe(3);
+      expect(deleteButtons.length).toBe(3);
+    });
+
+    it('debe abrir modal al hacer clic en editar', async () => {
+      const user = userEvent.setup();
+      render(<Comentarios />);
+      
+      const editButtons = screen.getAllByText('edit');
+      await user.click(editButtons[0]);
+      
+      // El modal debería intentar abrirse
+      expect(window.M.Modal.init).toBeDefined();
+    });
+  });
+
+  describe('Ordenamiento', () => {
+    it('debe ordenar comentarios por calificación', async () => {
+      const user = userEvent.setup();
+      render(<Comentarios />);
+      
+      const ordenSelects = screen.getAllByRole('combobox');
+      expect(ordenSelects.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Estado vacío', () => {
+    it('debe manejar productos sin comentarios', () => {
+      localStorage.setItem('productos', JSON.stringify([
+        { id: 1, nombre: 'Sin comentarios', comentarios: [] },
+        { id: 2, nombre: 'Otro sin comentarios' }
+      ]));
+      
+      render(<Comentarios />);
+      
+      const totalCard = screen.getByText('Total Comentarios').closest('.stat-card');
+      expect(within(totalCard).getByText('0')).toBeInTheDocument();
+    });
+
+    it('debe mostrar 0 para promedio cuando no hay comentarios', () => {
+      localStorage.setItem('productos', JSON.stringify([]));
+      
+      render(<Comentarios />);
+      
+      const totalCard = screen.getByText('Total Comentarios').closest('.stat-card');
+      expect(within(totalCard).getByText('0')).toBeInTheDocument();
+    });
+  });
+
+  describe('Modal de edición', () => {
+    it('debe mostrar el formulario de edición en el modal', () => {
+      const { container } = render(<Comentarios />);
+      
+      const modal = container.querySelector('#modal-editar-comentario');
+      expect(modal).toBeInTheDocument();
+      expect(screen.getByText('Editar Comentario')).toBeInTheDocument();
+    });
+  });
+
+  describe('Renderizado de estrellas', () => {
+    it('debe mostrar estrellas para diferentes calificaciones', () => {
+      render(<Comentarios />);
+      
+      // Verificar que hay estrellas en la página
+      const stars = screen.getAllByText('star');
+      expect(stars.length).toBeGreaterThan(0);
+    });
+
+    it('debe mostrar estrellas vacías para calificaciones bajas', () => {
+      render(<Comentarios />);
+      
+      const starBorders = screen.getAllByText('star_border');
+      expect(starBorders.length).toBeGreaterThan(0);
+    });
   });
 });

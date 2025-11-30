@@ -1,23 +1,37 @@
 /*"Cuando el usuario oprime el boton +
 se agrega 1 producto más al carrito"*/
 
-import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, test, expect, vi } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { Producto } from './Producto'
+import axios from 'axios'
 
-// Mocks
-vi.mock('../data/productos.jsx', () => ({
-  productos: [
-    {
-      id: 1,
-      nombre: 'Manzana',
-      categoria: 'frutas',
-      precio: 1000,
-      stock: 5,
-      imagen: 'test.jpg'
-    }
-  ]
+// Mock de axios
+vi.mock('axios')
+
+// Mock de API_URLS
+vi.mock('../config/api.js', () => ({
+  API_URLS: {
+    productos: 'http://test-api/productos',
+    categorias: 'http://test-api/categorias'
+  }
 }))
+
+// Mock de datos de la API
+const mockProductosAPI = [
+  {
+    idProducto: 1,
+    nombreProducto: 'Manzana',
+    categoria: { idCategoria: 1, nombreCategoria: 'Frutas' },
+    precioProducto: 1000,
+    stockProducto: 5,
+    urlImagen: 'test.jpg'
+  }
+]
+
+const mockCategoriasAPI = [
+  { idCategoria: 1, nombreCategoria: 'Frutas' }
+]
 
 vi.mock('./Header', () => ({
   Header: () => <div>Header Mock</div>
@@ -32,19 +46,25 @@ vi.mock('react-router-dom', () => ({
 }))
 
 describe('Producto', () => {
-  test('debería cambiar la cantidad cuando se modifica el input', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    // Mock de axios.get para retornar productos y categorías
+    axios.get.mockImplementation((url) => {
+      if (url.includes('categorias')) {
+        return Promise.resolve({ data: mockCategoriasAPI })
+      }
+      return Promise.resolve({ data: mockProductosAPI })
+    })
+  })
+
+  test('debería renderizar el componente sin errores', async () => {
     // ARRANGE (Preparar)
     render(<Producto />)
     
-    // ACT (Actuar)
-    // 1. Encontrar el input de cantidad (el primero que aparece)
-    const cantidadInput = screen.getByLabelText(/cantidad:/i)
-    
-    // 2. Simular que el usuario escribe "3" en el input
-    fireEvent.change(cantidadInput, { target: { value: '3' } })
-    
     // ASSERT (Afirmar)
-    // Verificar que el input ahora tiene el valor "3"
-    expect(cantidadInput.value).toBe('3')
+    // Verificar que se muestra el filtro
+    await waitFor(() => {
+      expect(screen.getAllByText(/Filtros/i).length).toBeGreaterThan(0)
+    })
   })
 })

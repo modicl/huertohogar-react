@@ -1,8 +1,31 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { Checkout } from './Checkout';
 import userEvent from '@testing-library/user-event';
+import axios from 'axios';
+
+// Mock de axios
+vi.mock('axios');
+
+// Mock de AuthContext
+vi.mock('../context/AuthContext', () => ({
+    useAuth: () => ({
+        token: 'mock-token',
+        user: { 
+            idUsuario: 1, 
+            email: 'test@test.com',
+            nombre: 'Test User',
+            aPaterno: 'Apellido',
+            telefono: '912345678',
+            direccion: 'Calle Test 123',
+            idRegion: 1,
+            rol: 'USER' 
+        },
+        isAuthenticated: () => true,
+        logout: vi.fn()
+    })
+}));
 
 // Mock de un producto de prueba
 const mockProducto = {
@@ -57,6 +80,9 @@ describe('Componente Checkout', () => {
         localStorage.clear();
         // ✅ Limpiar el mock antes de cada test
         mockSetCartHuerto.mockClear();
+        vi.clearAllMocks();
+        // Mock de axios.post exitoso
+        axios.post.mockResolvedValue({ status: 201, data: { idOrden: 123 } });
     });
 
     it('debe renderizar el componente Checkout sin errores si no hay productos en el carrito', () => {
@@ -91,40 +117,36 @@ describe('Componente Checkout', () => {
         expect(elementosConTotal.length).toBeGreaterThan(0);
     });
 
-    it('debe tener el formulario de datos del cliente', () => {
+    it('debe mostrar la información del usuario desde su perfil', () => {
         renderCheckoutConProductos();
 
-        // Usar los labels exactos de tu formulario
-        expect(screen.getByLabelText(/nombre completo/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/teléfono/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/dirección completa/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/ciudad/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/código postal/i)).toBeInTheDocument();
+        // El checkout ahora muestra los datos del usuario desde su perfil (no campos de formulario)
+        expect(screen.getByText(/Información de Envío/i)).toBeInTheDocument();
+        expect(screen.getByText(/Nombre:/i)).toBeInTheDocument();
+        expect(screen.getByText(/Email:/i)).toBeInTheDocument();
+        expect(screen.getByText(/Teléfono:/i)).toBeInTheDocument();
+        expect(screen.getByText(/Dirección:/i)).toBeInTheDocument();
     });
 
-    it('debe procesar compra exitosamente with datos válidos', async () => {
+    it('debe procesar compra exitosamente', async () => {
         const user = userEvent.setup();
         renderCheckoutConProductos();
 
-        // Llenar TODOS los campos obligatorios
-        await user.type(screen.getByLabelText(/nombre completo/i), 'Juan Pérez');
-        await user.type(screen.getByLabelText(/email/i), 'juan@example.com');
-        await user.type(screen.getByLabelText(/teléfono/i), '912345678');
-        await user.type(screen.getByLabelText(/dirección completa/i), 'Calle Falsa 123');
-        await user.type(screen.getByLabelText(/ciudad/i), 'Santiago');
-        await user.type(screen.getByLabelText(/código postal/i), '8320000');
-
-        // Seleccionar región (select)
-        const selectRegion = screen.getByRole('combobox');
-        await user.selectOptions(selectRegion, 'Región Metropolitana de Santiago');
-
-        // Finalizar compra
+        // Ya no hay campos de formulario para llenar, los datos vienen del perfil del usuario
+        // Simplemente verificamos que el botón de finalizar compra existe
         const botonCompra = screen.getByTestId('btn-finalizar-compra');
+        expect(botonCompra).toBeInTheDocument();
+
+        // Verificar que los métodos de pago están disponibles
+        expect(screen.getByText(/Método de Pago/i)).toBeInTheDocument();
+
+        // Hacer click en finalizar compra
         await user.click(botonCompra);
 
-        // Verificar que setCartHuerto fue llamado con array vacío
-        expect(mockSetCartHuerto).toHaveBeenCalledWith([]);
+        // Esperar a que la compra se procese y el carrito se vacíe
+        await waitFor(() => {
+            expect(mockSetCartHuerto).toHaveBeenCalledWith([]);
+        });
     });
 
 

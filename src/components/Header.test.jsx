@@ -3,7 +3,15 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { Header } from './Header';
 
-// Head no necesita mocks, es muy "simple!"
+// Mock de AuthContext
+vi.mock('../context/AuthContext', () => ({
+    useAuth: () => ({
+        user: null,
+        token: null,
+        isAuthenticated: () => false,
+        logout: vi.fn()
+    })
+}));
 
 // Metodo helper que renderiza el header
 
@@ -52,8 +60,10 @@ describe("Componente Header", () => {
         let blog = screen.getAllByRole('link', { name: /blog/i });
         expect(blog).toHaveLength(2);
         
-        let registro = screen.getAllByRole('link', { name: /Registro\/Iniciar Sesión/i });
-        expect(registro).toHaveLength(2);
+        // El link de registro existe dos veces (desktop + mobile)
+        // En desktop tiene texto dividido "Registro /" + "Iniciar sesión", en mobile "Registro/Iniciar Sesión"
+        let registroLinks = screen.getAllByRole('link', { name: /registro/i });
+        expect(registroLinks.length).toBeGreaterThanOrEqual(2);
         
         let carritos = screen.getAllByRole('link', { name: /carrito|tu carrito/i });
         expect(carritos).toHaveLength(2);

@@ -16,10 +16,10 @@ describe('Componente Configuracion', () => {
     expect(screen.getByText(/Página en Construcción/i)).toBeInTheDocument();
   });
 
-  it('debe mostrar el mensaje de que estará disponible en la Entrega N°3', () => {
+  it('debe mostrar el mensaje de que estará disponible en próximos Sprint Reviews', () => {
     render(<Configuracion />);
     
-    expect(screen.getByText(/Esta funcionalidad estará disponible en la Entrega N°3/i)).toBeInTheDocument();
+    expect(screen.getByText(/Esta funcionalidad estará disponible en proximos Sprint Reviews/i)).toBeInTheDocument();
   });
 
   it('debe mostrar el icono de construcción', () => {
